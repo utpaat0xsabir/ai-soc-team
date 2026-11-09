@@ -202,3 +202,49 @@ class EvidenceLineage(Base):
         nullable=False,
         server_default=func.now(),
     )
+class TenantAPIKey(Base):
+    __tablename__ = "tenant_api_keys"
+
+    __table_args__ = (
+        UniqueConstraint(
+            "key_hash",
+            name="uq_tenant_api_keys_key_hash",
+        ),
+        Index(
+            "ix_tenant_api_keys_tenant",
+            "tenant_id",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+
+    tenant_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("tenants.id", ondelete="RESTRICT"),
+        nullable=False,
+    )
+
+    name: Mapped[str] = mapped_column(
+        String(150),
+        nullable=False,
+    )
+
+    key_hash: Mapped[str] = mapped_column(
+        String(64),
+        nullable=False,
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
+
+    revoked_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )

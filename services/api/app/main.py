@@ -1,7 +1,13 @@
-from fastapi import FastAPI, HTTPException
-from sqlalchemy import text
+from uuid import UUID
 
-from app.db import engine
+from fastapi import Depends, FastAPI, HTTPException
+from sqlalchemy import select, text
+from sqlalchemy.orm import Session
+
+from app.auth import get_current_tenant
+from app.db import engine, get_db
+from app.models import Tenant
+from app.schemas import TenantResponse
 
 app = FastAPI(
     title="AI SOC Team API",
@@ -35,3 +41,26 @@ def readiness():
         "status": "ready",
         "database": "available",
     }
+
+
+@app.get(
+    "/v1/tenant",
+    response_model=TenantResponse,
+    tags=["Tenant"],
+)
+def get_tenant(
+    tenant_id: UUID = Depends(get_current_tenant),
+    db: Session = Depends(get_db),
+):
+    """Return the tenant associated with the authenticated API key."""
+
+    statement = select(Tenant).where(Tenant.id == tenant_id)
+    tenant = db.scalar(statement)
+
+    if tenant is None:
+        raise HTTPException(
+            status_code=404,
+            detail="tenant_not_found",
+        )
+
+    return tenant
