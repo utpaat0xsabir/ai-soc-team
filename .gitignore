@@ -11,3 +11,6 @@ build/
 *.egg-info/
 .idea/
 .vscode/
+
+# Accidental root-level command artifact
+/pytest
