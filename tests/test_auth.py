@@ -3,6 +3,9 @@ from uuid import uuid4
 import pytest
 from fastapi import HTTPException
 
+from types import SimpleNamespace
+
+from app.auth import get_current_principal
 from app.api_keys import generate_api_key
 from app.auth import get_current_tenant
 
@@ -66,6 +69,54 @@ def test_unknown_or_revoked_api_key_is_rejected():
     with pytest.raises(HTTPException) as exc:
         get_current_tenant(
             x_api_key=api_key,
+            db=db,
+        )
+
+    assert exc.value.status_code == 401
+    assert exc.value.detail == "invalid_api_key"
+
+
+def test_valid_api_key_returns_authenticated_principal():
+    tenant_id = uuid4()
+    api_key_id = uuid4()
+    api_key = generate_api_key()
+
+    db = FakeDB(
+        result=SimpleNamespace(
+            id=api_key_id,
+            tenant_id=tenant_id,
+        )
+    )
+
+    result = get_current_principal(
+        x_api_key=api_key,
+        db=db,
+    )
+
+    assert result.tenant_id == tenant_id
+    assert result.api_key_id == api_key_id
+    assert db.statement is not None
+
+
+def test_principal_rejects_missing_api_key():
+    db = FakeDB()
+
+    with pytest.raises(HTTPException) as exc:
+        get_current_principal(
+            x_api_key=None,
+            db=db,
+        )
+
+    assert exc.value.status_code == 401
+    assert exc.value.detail == "invalid_api_key"
+
+
+def test_principal_rejects_unknown_or_revoked_api_key():
+    db = FakeDB(result=None)
+
+    with pytest.raises(HTTPException) as exc:
+        get_current_principal(
+            x_api_key=generate_api_key(),
             db=db,
         )
 
