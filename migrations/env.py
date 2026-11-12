@@ -13,18 +13,8 @@ API_PATH = os.path.join(PROJECT_ROOT, "services", "api")
 
 sys.path.insert(0, API_PATH)
 
-from app.config import settings
-from app.models import (
-    Base,
-    Tenant,
-    EvidenceRecord,
-    EvidenceLineage,
-    TenantAPIKey,
-    AuditLog,
-    WazuhIntegration,
-    WazuhSyncCheckpoint,
-    WazuhSyncLease,
-)  # noqa: F401,E402
+from app.core.config import settings
+from app.database.models import Base, Tenant, EvidenceRecord, EvidenceLineage, TenantAPIKey, AuditLog, WazuhIntegration, WazuhSyncCheckpoint, WazuhSyncLease  # noqa: F401,E402
 
 config = context.config
 

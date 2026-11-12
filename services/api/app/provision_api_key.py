@@ -3,10 +3,10 @@ import sys
 
 from sqlalchemy import select
 
-from app.api_keys import generate_api_key, hash_api_key
-from app.audit import record_audit_event
+from app.iam.api_keys import generate_api_key, hash_api_key
+from app.audit.integrity import record_audit_event
 from app.db import SessionLocal
-from app.models import Tenant, TenantAPIKey
+from app.database.models import Tenant, TenantAPIKey
 
 
 def main():

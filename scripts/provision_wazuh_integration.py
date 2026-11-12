@@ -4,11 +4,11 @@ from urllib.parse import urlparse
 
 from sqlalchemy import select, text
 
-from app.audit import record_audit_event
-from app.config import settings
+from app.audit.integrity import record_audit_event
+from app.core.config import settings
 from app.db import SessionLocal
-from app.models import Tenant, WazuhIntegration
-from app.wazuh import WazuhIndexerClient, WazuhIndexerError
+from app.database.models import Tenant, WazuhIntegration
+from app.integrations.wazuh.client import WazuhIndexerClient, WazuhIndexerError
 
 
 TENANT_SLUG = "acme-security-lab"

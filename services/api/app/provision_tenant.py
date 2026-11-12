@@ -3,9 +3,9 @@ import sys
 
 from sqlalchemy.exc import IntegrityError
 
-from app.api_keys import generate_api_key, hash_api_key
+from app.iam.api_keys import generate_api_key, hash_api_key
 from app.db import SessionLocal
-from app.models import Tenant, TenantAPIKey
+from app.database.models import Tenant, TenantAPIKey
 
 
 def main():

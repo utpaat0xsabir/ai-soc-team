@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0",
+  "status": "TEMPLATE_NOT_EVIDENCE",
+  "executable": false,
+  "notice": "Nulls are deliberately incomplete. These are field inventories, not valid manifests, signatures, receipts or authorization. Never populate verification booleans from a self-asserted document.",
+  "common_fields": {
+    "receipt_id": null,
+    "status": "UNVERIFIED",
+    "environment": "development",
+    "tenant_id": null,
+    "principal_id": null,
+    "integration_id": null,
+    "issuer_id": null,
+    "verifier_id": null,
+    "observed_at": null,
+    "valid_until": null,
+    "provenance_reference": null,
+    "artifact_sha256": null,
+    "verification_method": null,
+    "reviewer": null,
+    "findings": []
+  },
+  "validity": {"manifest_max_seconds": 3600, "verification_max_seconds": 300, "supporting_receipt_max_seconds": 3600, "invalidate_on_change": true, "clock": "Trusted UTC, explicit evaluation time; missing/expired/future or conflicting evidence blocks clearance"},
+  "canonicalization": "UTF-8 ASCII-escaped JSON, sorted keys, compact separators, no NaN, duplicate keys rejected on admission; UTC millisecond-aligned query times; exact schema 1.0; canonicalize manifest through existing model/digest helpers, not raw input bytes",
+  "trust": "Issuer and verifier independently authenticated and distinct. Verifier trust anchor pinned outside supplied package. Signature envelope/approved authenticated review admission is future work. Hash alone proves neither issuer nor ownership. No secrets or customer payloads in receipts.",
+  "receipts": {
+    "ownership": {"required_fields": ["tenant_id", "principal_id", "integration_id", "control_plane_identity", "ownership_relationship", "principal_active", "grant_scope", "revocation_checked_at"], "review_criteria": "Authoritative isolated development records, exact UUID relationships; no fixtures, model authority or protected ai_soc lookup"},
+    "active_state": {"required_fields": ["integration_id", "active", "control_plane_revision", "observed_at"], "review_criteria": "Fresh independent control-plane read; active true and unchanged at admission"},
+    "source": {"required_fields": ["concrete_index_name", "index_uuid", "cluster_identity", "alias_absent", "dedicated_owner", "timestamp_mapping", "approved_window"], "review_criteria": "Exact metadata identity and exclusive synthetic development ownership; names/agent IDs alone insufficient; replacement invalidates receipt"},
+    "privileges": {"required_fields": ["account_reference", "direct_grants", "inherited_roles", "backend_roles", "default_grants", "effective_index_scope", "pit_privileges", "version"], "review_criteria": "Independent effective ACL review, no wildcard/write/admin grants; required actions mapped to selected version, no destructive permission probes"},
+    "credential_isolation": {"required_fields": ["credential_reference", "account_reference", "storage_boundary", "runtime_readers", "production_separation", "rotation_revocation_procedure"], "review_criteria": "Dedicated development account and delivery boundary; no credential values, key hashes or tokens; no production resolver reuse"},
+    "tls": {"required_fields": ["endpoint_hostname", "port", "ca_reference", "ca_sha256", "leaf_sha256", "sans", "not_before", "not_after", "chain_verification", "hostname_verification"], "review_criteria": "Independent CA provenance and exact SAN/chain verification; private key excluded; no insecure fallback"},
+    "egress": {"required_fields": ["enforcer_identity", "policy_sha256", "applied_at", "addresses_interfaces", "ipv4_rules", "ipv6_rules", "dns_proxy_redirect_policy", "controlled_allow_test", "controlled_deny_test"], "review_criteria": "Effective host/VM policy and controlled development-only negative tests; Compose internal flag alone insufficient; no production probes"},
+    "budgets": {"required_fields": ["code_artifact_sha256", "ceilings", "byte_accounting", "lookahead", "pit_cleanup_budget", "timeout_test", "overflow_test", "no_retry_test"], "review_criteria": "Measured bounded behavior using synthetic endpoints; exact-source filtering, one page, no retry, aggregate deadlines and output rejection"},
+    "issuer_verifier": {"required_fields": ["issuer_id", "verifier_id", "external_trust_anchor_reference", "manifest_sha256", "evidence_bundle_sha256", "authentication_method", "verified_at", "valid_until"], "review_criteria": "Authenticated independent verifier validates issuer, integrity and source authority; reject embedded self-supplied trust roots, stale or contradictory receipts"}
+  },
+  "pre2_contract_fields": {
+    "DevelopmentManifest": {"schema_version": null, "manifest_id": null, "environment": null, "tenant_id": null, "principal_id": null, "integration_id": null, "active": null, "indices": null, "organization": null, "destination": null, "credential_reference": null, "ca_reference": null, "ca_sha256": null, "issuer_id": null, "provenance_reference": null, "issued_at": null, "expires_at": null, "approved_query": null, "ceilings": null, "capability_id": null, "capability_version": null, "policy_version": null},
+    "VerificationAuthority": {"schema_version": null, "issuer_id": null, "verifier_id": null, "destination": null, "credential_reference": null, "ca_sha256": null},
+    "IndependentVerification": {"schema_version": null, "issuer_id": null, "verifier_id": null, "manifest_sha256": null, "evidence_reference": null, "verified_at": null, "valid_until": null, "issuer_validated": null, "integrity_validated": null, "source_authority_validated": null, "destination_validated": null, "credential_reference_validated": null, "ca_provenance_validated": null}
+  }
+}

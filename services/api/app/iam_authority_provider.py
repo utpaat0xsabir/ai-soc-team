@@ -1,0 +1,26 @@
+"""Deprecated compatibility import; use app.iam.authority_provider. Retire separately."""
+
+from app.iam.authority_provider import (
+    Annotated as Annotated,
+    AuthorityProvider as AuthorityProvider,
+    Component as Component,
+    ComponentEpoch as ComponentEpoch,
+    Field as Field,
+    Literal as Literal,
+    ProtectedAuthorityBridge as ProtectedAuthorityBridge,
+    Protocol as Protocol,
+    ProviderAuthority as ProviderAuthority,
+    ProviderRegistration as ProviderRegistration,
+    ProviderSnapshot as ProviderSnapshot,
+    SyntheticProvider as SyntheticProvider,
+    SyntheticProviderOrigins as SyntheticProviderOrigins,
+    UUID as UUID,
+    admission as admission,
+    dataclass as dataclass,
+    datetime as datetime,
+    field_validator as field_validator,
+    get_args as get_args,
+    iam as iam,
+    model_validator as model_validator,
+    policy as policy,
+)

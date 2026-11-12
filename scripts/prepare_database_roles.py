@@ -5,7 +5,7 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'services' / 'api'))
 
-from app.database_roles import main  # noqa: E402
+from app.database.roles import main  # noqa: E402
 
 
 if __name__ == '__main__':

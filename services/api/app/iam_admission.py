@@ -1,0 +1,28 @@
+"""Deprecated compatibility import; use app.iam.admission. Retire separately."""
+
+from app.iam.admission import (
+    APIKeyState as APIKeyState,
+    AdmissionAudit as AdmissionAudit,
+    AdmissionOutcome as AdmissionOutcome,
+    AdmittedSnapshot as AdmittedSnapshot,
+    Annotated as Annotated,
+    AuthoritySnapshot as AuthoritySnapshot,
+    Field as Field,
+    IssuerAuthority as IssuerAuthority,
+    Literal as Literal,
+    Reason as Reason,
+    RecordType as RecordType,
+    RevocationState as RevocationState,
+    SyntheticAuthority as SyntheticAuthority,
+    SyntheticOriginRegistry as SyntheticOriginRegistry,
+    TrustedContext as TrustedContext,
+    UUID as UUID,
+    _Denied as _Denied,
+    admit as admit,
+    dataclass as dataclass,
+    datetime as datetime,
+    field_validator as field_validator,
+    iam as iam,
+    model_validator as model_validator,
+    policy as policy,
+)

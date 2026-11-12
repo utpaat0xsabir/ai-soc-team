@@ -1,0 +1,66 @@
+{
+  "name": "ai-soc-gateway-dev",
+  "services": {},
+  "x-review": {
+    "schema_version": "1.0",
+    "status": "DRAFT_NOT_DEPLOYABLE",
+    "executable": false,
+    "date": "2026-11-11",
+    "notice": "No runnable services. Promotion requires separate approval, pinned images, reviewed entrypoints, TLS/secret mounts, user IDs and enforced network policy. Do not pass this draft to Compose.",
+    "vm": "Dedicated non-production VM; no production routes, credentials, host mounts or shared volumes",
+    "image_lock_fields": ["component", "upstream", "version", "platform", "manifest_digest", "config_digest", "provenance", "license_review", "vulnerability_review", "reviewer", "reviewed_at"],
+    "image_lock_status": "UNVERIFIED_NO_REGISTRY_ACCESS"
+  },
+  "x-proposed-services": {
+    "postgres": {
+      "image": null,
+      "restart": "no",
+      "ports": [],
+      "networks": ["database"],
+      "volumes": ["gateway_dev_postgres:/var/lib/postgresql/data"],
+      "environment": {"POSTGRES_DB": "ai_soc_gateway_dev"},
+      "privileged": false,
+      "cap_drop": ["ALL"],
+      "security_opt": ["no-new-privileges:true"],
+      "x-resource-proposal": {"memory_mib": 1024, "cpus": 1, "pids": 256},
+      "x-startup-blocker": "Review selected image initialization/user/permissions and development-only bootstrap secret delivery; no initialization SQL supplied"
+    },
+    "indexer": {
+      "image": null,
+      "restart": "no",
+      "ports": [],
+      "networks": ["search"],
+      "volumes": ["gateway_dev_indexer:/var/lib/wazuh-indexer"],
+      "environment": {},
+      "privileged": false,
+      "cap_drop": ["ALL"],
+      "security_opt": ["no-new-privileges:true"],
+      "x-resource-proposal": {"memory_mib": 4096, "cpus": 2, "pids": 512},
+      "x-startup-blocker": "Validate data path, heap/kernel requirements, TLS/security configuration, account grants and non-root UID against pinned image; no security bootstrap commands supplied"
+    },
+    "runner": {
+      "image": null,
+      "restart": "no",
+      "ports": [],
+      "networks": ["database", "search"],
+      "volumes": [],
+      "read_only": true,
+      "environment": {},
+      "privileged": false,
+      "cap_drop": ["ALL"],
+      "security_opt": ["no-new-privileges:true"],
+      "x-schedulers": false,
+      "x-live-registration": false,
+      "x-resource-proposal": {"memory_mib": 512, "cpus": 1, "pids": 64},
+      "x-startup-blocker": "Reviewed foreground entrypoint required; no entrypoint supplied. Future CA mount read-only, secrets scoped to runner, no Docker socket, no privileged users, no host namespaces"
+    }
+  },
+  "x-proposed-networks": {
+    "database": {"internal": true},
+    "search": {"internal": true}
+  },
+  "x-proposed-volumes": {
+    "gateway_dev_postgres": {"external": false},
+    "gateway_dev_indexer": {"external": false}
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0",
+  "status": "DRAFT_NOT_ENFORCED",
+  "executable": false,
+  "database": "ai_soc_gateway_dev",
+  "tenant_slug": "gateway-development",
+  "integration_name": "Gateway Development Indexer",
+  "identity_uuids": null,
+  "source": {
+    "indices": ["wazuh-alerts-gateway-dev-v1"],
+    "index_uuids": null,
+    "ownership": "DEDICATED_REQUIRES_INDEPENDENT_PROOF",
+    "aliases": false,
+    "wildcards": false,
+    "production_data": false
+  },
+  "destination": {"hostname": "wazuh-indexer.gateway-dev.test", "scheme": "https", "port": 9200, "approved_addresses": null},
+  "tls": {"verify": true, "ca_reference": "ca-ref:gateway-dev-root", "ca_sha256": null, "hostname_verification": true, "ca_private_key_in_runner": false},
+  "credential_reference": "env:AI_SOC_GATEWAY_DEV_WAZUH_PASSWORD",
+  "environment_names": ["AI_SOC_GATEWAY_DEV_DATABASE_URL", "AI_SOC_GATEWAY_DEV_WAZUH_PASSWORD", "AI_SOC_GATEWAY_DEV_API_KEY"],
+  "secret_values": null,
+  "egress": {
+    "default": "DENY",
+    "ipv4_and_ipv6": true,
+    "proxy": "DENY",
+    "redirects": "DENY",
+    "dns": "No general resolver egress; approved fixed address mapping with TLS hostname preservation",
+    "allow_proposals": [
+      {"origin": "runner", "destination": "development-postgres", "protocol": "tcp", "port": 5432},
+      {"origin": "runner", "destination": "wazuh-indexer.gateway-dev.test", "protocol": "tcp", "port": 9200}
+    ],
+    "enforcement": "Separate host/VM ingress, forwarding and output default-deny policy; bind actual addresses/interfaces; established return traffic only; block metadata, host gateway, Internet and production routes",
+    "management": "Separately approved temporary operator channel; no runtime access to management identities",
+    "verified": false
+  },
+  "query": {"capability_id": "wazuh.alerts.search", "capability_version": "1.0", "operation": "query", "size": 1, "max_pages": 1, "require_timestamp": true, "max_window_seconds": 900, "approved_start": null, "approved_end": null},
+  "ceilings": {"schema_version": "1.0", "max_input_bytes": 32768, "max_pages": 1, "max_fetched_hits": 2, "max_result_bytes": 2048, "max_wire_bytes": 65536, "request_timeout_ms": 5000, "overall_deadline_ms": 15000, "max_requests": 3, "max_retries": 0, "max_memory_mib": 128, "max_cpu_ms": 1000},
+  "budget_semantics": "Operation-wide response body budget, counted before decompression and again after decoding; bound headers separately to 8192 bytes per response. Stop before accepting excess; cleanup uses reserved request/time/byte budget. If cleanup cannot complete, report failure and allow short PIT expiry; no retry.",
+  "runtime_gaps": ["development credential resolver", "authenticated bridge and fresh revocation", "real observation disclosure contract", "explicit live adapter eligibility", "aggregate budgets and deadline enforcement", "issuer receipt admission", "effective egress policy"],
+  "accounts": {
+    "postgres_owner": "NOLOGIN schema owner; no runtime membership",
+    "postgres_provisioner": "Temporary development-only initializer; separated from runtime; exact grants require schema review",
+    "postgres_runtime": "Non-superuser, no CREATEDB/CREATEROLE/BYPASSRLS or ownership; only reviewed application privileges; no create tenant/key/integration authority",
+    "indexer_provisioner": "Development-only account for index creation/seed data and role setup; absent from runner",
+    "indexer_verifier": "Independent exact-source metadata and effective-permission inspector; absent from runner",
+    "indexer_reader": "Exact concrete index search plus minimum reviewed PIT lifecycle permissions only; no wildcard grants/write/delete/admin/response; inspect inherited/backend/default grants"
+  }
+}
