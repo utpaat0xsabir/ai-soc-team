@@ -1,0 +1,67 @@
+title = "AI SOC Team: SEC-01 verified noncredential exceptions"
+
+[extend]
+useDefault = true
+
+# SEC-01: token-accounting policy identifier, not an authentication value.
+# Exact file AND source line; Gitleaks may retain a leading newline in line context.
+[[allowlists]]
+description = "SEC-01: token-accounting policy identifier, not an authentication value."
+targetRules = ["generic-api-key"]
+condition = "AND"
+paths = ['^services/api/app/analysts/inference\.py$']
+regexTarget = "line"
+regexes = [
+    '''^\n?    elif model\.token_accounting=='ESTIMATED_BYTES_PER4_V1' and model\.runtime_id=='ollama':$''', # SEC-01 line 220
+]
+
+# SEC-01: token-accounting policy identifier, not an authentication value.
+# Exact file AND source line; Gitleaks may retain a leading newline in line context.
+[[allowlists]]
+description = "SEC-01: token-accounting policy identifier, not an authentication value."
+targetRules = ["generic-api-key"]
+condition = "AND"
+paths = ['^tests/analysts/test_analyst_inference\.py$']
+regexTarget = "line"
+regexes = [
+    '''^\n?        token_accounting='SYNTHETIC_UTF8_BYTES_V1'\)$''', # SEC-01 line 25
+]
+
+# SEC-01: token-accounting policy identifier, not an authentication value.
+# Exact file AND source line; Gitleaks may retain a leading newline in line context.
+[[allowlists]]
+description = "SEC-01: token-accounting policy identifier, not an authentication value."
+targetRules = ["generic-api-key"]
+condition = "AND"
+paths = ['^tests/analysts/test_ollama_inference\.py$']
+regexTarget = "line"
+regexes = [
+    '''^\n?        'token_accounting':'ESTIMATED_BYTES_PER4_V1'\}\)$''', # SEC-01 line 24
+]
+
+# SEC-01: frozen HTTP/route SHA-256 expectations, not credentials.
+# Exact file AND source line; Gitleaks may retain a leading newline in line context.
+[[allowlists]]
+description = "SEC-01: frozen HTTP/route SHA-256 expectations, not credentials."
+targetRules = ["generic-api-key"]
+condition = "AND"
+paths = ['^tests/api/test_api_routes_offline\.py$']
+regexTarget = "line"
+regexes = [
+    '''^\n? 'create_evidence_lineage_unauthenticated': '9819a2a56db57a0936a1a0bd14a5b08bd64baa0959ff6b8300717eb54edf8b1e',$''', # SEC-01 line 59
+    '''^\n? 'get_evidence_unauthenticated': '9819a2a56db57a0936a1a0bd14a5b08bd64baa0959ff6b8300717eb54edf8b1e',$''', # SEC-01 line 69
+    '''^\n? 'get_tenant_unauthenticated': '9819a2a56db57a0936a1a0bd14a5b08bd64baa0959ff6b8300717eb54edf8b1e',$''', # SEC-01 line 70
+    '''^\n? 'get_wazuh_integration_unauthenticated': '9819a2a56db57a0936a1a0bd14a5b08bd64baa0959ff6b8300717eb54edf8b1e',$''', # SEC-01 line 71
+    '''^\n? 'get_wazuh_sync_status_unauthenticated': '9819a2a56db57a0936a1a0bd14a5b08bd64baa0959ff6b8300717eb54edf8b1e',$''', # SEC-01 line 72
+    '''^\n? 'ingest_evidence_unauthenticated': '9819a2a56db57a0936a1a0bd14a5b08bd64baa0959ff6b8300717eb54edf8b1e',$''', # SEC-01 line 74
+    '''^\n? 'ingest_wazuh_alerts_unauthenticated': '9819a2a56db57a0936a1a0bd14a5b08bd64baa0959ff6b8300717eb54edf8b1e',$''', # SEC-01 line 75
+    '''^\n? 'list_audit_logs_unauthenticated': '9819a2a56db57a0936a1a0bd14a5b08bd64baa0959ff6b8300717eb54edf8b1e',$''', # SEC-01 line 82
+    '''^\n? 'list_evidence_lineage_unauthenticated': '9819a2a56db57a0936a1a0bd14a5b08bd64baa0959ff6b8300717eb54edf8b1e',$''', # SEC-01 line 83
+    '''^\n? 'list_evidence_unauthenticated': '9819a2a56db57a0936a1a0bd14a5b08bd64baa0959ff6b8300717eb54edf8b1e',$''', # SEC-01 line 84
+    '''^\n? 'list_wazuh_integrations_unauthenticated': '9819a2a56db57a0936a1a0bd14a5b08bd64baa0959ff6b8300717eb54edf8b1e',$''', # SEC-01 line 85
+    '''^\n? 'revoked_key': 'ddfd2b9bd3f67faf083c6a135e4b7975d5bad04c08955472494812a5989c6e83',$''', # SEC-01 line 88
+    '''^\n? 'synchronize_wazuh_unauthenticated': '9819a2a56db57a0936a1a0bd14a5b08bd64baa0959ff6b8300717eb54edf8b1e',$''', # SEC-01 line 89
+    '''^\n? 'verify_audit_logs_unauthenticated': '9819a2a56db57a0936a1a0bd14a5b08bd64baa0959ff6b8300717eb54edf8b1e',$''', # SEC-01 line 92
+    '''^\n? 'verify_evidence_integrity_unauthenticated': '9819a2a56db57a0936a1a0bd14a5b08bd64baa0959ff6b8300717eb54edf8b1e',$''', # SEC-01 line 93
+    '''^\n?OPENAPI_SHA256 = '256172210dc058e903e16a8b33876885d3e23c3072f92db5fbd69e9f06783f28'$''', # SEC-01 line 110
+]

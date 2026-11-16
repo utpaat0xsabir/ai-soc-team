@@ -151,3 +151,100 @@ accordingly. A service supervisor/deployment artifact is not installed by this p
   Preserve external audit heads and record any unavoidable history gap. No
   destructive restore, database reset, role drop, or retention deletion is
   authorized by this document.
+
+## Audit-lock protocol cutover — preparation only
+
+The active writer remains `tenant-row-no-key-update-v1`. The isolated
+`advisory` role profile and `_record_audit_event_advisory_candidate` are not
+activation mechanisms. Production activation requires a separate approved
+release and maintenance window.
+
+### Writer inventory and controls
+
+All current code paths call the shared `record_audit_event` writer:
+
+| Writer | Entry point and start mechanism | How to pause, drain, and stop |
+| --- | --- | --- |
+| Evidence creation and lineage | `app.api.v1.evidence`; API server (`uvicorn app.main:app --app-dir services/api` is the documented development command) | Close API admission, drain requests, stop every API worker |
+| Legacy Wazuh page ingestion | `app.main.ingest_wazuh_alerts`; same API server | Close API admission, drain requests, stop every API worker |
+| Wazuh synchronization | `app.integrations.wazuh.sync_wazuh`; called by API or `python3 scripts/run_wazuh_scheduler.py` | Disable scheduler, stop it cooperatively, close API admission, drain requests, stop workers |
+| Development IAM decisions | `app.iam.development`; same API server | Close API admission, drain requests, stop every API worker |
+| API-key provisioning | `python -m app.provision_api_key` | Freeze operator invocation and wait for any running command to exit |
+| Wazuh integration provisioning | `python3 scripts/provision_wazuh_integration.py` | Freeze operator invocation and wait for any running command to exit |
+
+The repository has no production API or scheduler supervisor manifest, so the
+exact service-manager commands and proof of complete process coverage must be
+provided by the deployment owner before activation. Health labels or process
+names alone do not prove all writers are stopped.
+
+### Protocol identification
+
+Each SQLAlchemy connection opened by the application sets PostgreSQL
+`application_name` to `ai-soc-team/tenant-row-no-key-update-v1`. During a
+maintenance window, inspect `pg_stat_activity` for every application login and
+record PID, application name, state, and transaction start. The identifier helps
+show the protocol used by connected sessions; it can be spoofed and does not
+prove an idle, disconnected, or unlisted process is absent. Pair it with the
+service-manager/process inventory, immutable release digest, and the full-stop
+barrier below. One-shot provisioning commands must be frozen and run only from
+the approved artifact after the barrier.
+
+### Forward cutover
+
+1. Approve the exact artifact, role profile, maintenance window, outage limit,
+   and recovery plan. Capture the current release identity and externally record
+   verified per-tenant audit heads.
+2. Close admission to all audit-producing HTTP routes. Disable and stop the
+   Wazuh scheduler; freeze both provisioning commands and any other operator
+   writer. Prevent new processes from starting.
+3. Let in-flight requests and synchronization pages finish or abort through
+   their normal transaction boundary. Stop all old API/scheduler processes.
+4. Verify the deployment inventory has no old writer process and inspect
+   `pg_stat_activity` until no application transaction or pool session remains.
+   If any process or session cannot be accounted for, keep admission closed.
+5. Start every writer from one immutable candidate release. Verify each API
+   instance and scheduler database session reports the candidate protocol via
+   `application_name`; verify the release digest separately from the deployment
+   inventory. Confirm the expected advisory role profile through catalog
+   inspection; do not infer it from the generated SQL alone.
+6. Verify audit-chain continuity and recorded heads. Resume API admission and
+   scheduled/manual writers only after every check passes.
+
+The protocol marker, role-plan rendering, and database session inventory are
+checkable. Pausing all entry points, proving process completeness, release
+uniformity, and deciding whether to resume remain operator-enforced; this
+repository does not automate them.
+
+### Full-stop rollback
+
+1. Close all audit-producing HTTP admission, disable and stop the scheduler, and
+   freeze provisioning commands.
+2. Drain or abort in-flight transactions, stop every candidate process, and
+   verify no candidate process or application database session remains.
+3. Start all writers from the single previously approved row-lock artifact.
+   Verify its release digest and `tenant-row-no-key-update-v1` identifier on
+   every API and scheduler connection before reopening admission.
+4. Verify chain continuity and recorded heads, then resume writers. Never roll
+   back only a subset: mixed row/advisory writers can race on the same chain
+   head. Audit rows written by the candidate need no format conversion, but
+   recovery still requires the full stop and protocol check.
+
+### Transaction and error policy
+
+The candidate requires PostgreSQL `READ COMMITTED` and a finite 5-second
+transaction-local `lock_timeout` before advisory-lock acquisition. The current
+SQLAlchemy engine does not set an isolation level or runtime lock timeout; the
+database default and deployed role/session settings must be verified and made
+explicit in a separately approved activation change. A lock timeout aborts the
+whole business transaction; do not commit partial evidence, audit, or checkpoint
+work.
+
+For SQLSTATE `23505` (unique violation), `40001` (serialization failure),
+`40P01` (deadlock), and `55P03` (lock unavailable/timeout), roll back the entire
+business transaction before returning or retrying. Do not retry an audit append
+alone. `23505` is a protocol/chain anomaly and must not be retried automatically.
+The application currently has no generic database retry policy. Any future
+`40001` or `40P01` retry must restart the complete operation in a fresh
+transaction, be bounded (at most two retries), and require a proven idempotency
+key and no non-transactional side effects. `55P03` fails closed; no immediate
+retry. No such retry is implemented by this preparation.

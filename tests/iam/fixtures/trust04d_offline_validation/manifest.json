@@ -1,0 +1,17 @@
+{
+  "classification": "PUBLIC_NON_SECRET_TEST_ONLY",
+  "private_keys_generated": false,
+  "stop": {
+    "reason": "Frozen profile incompatibility",
+    "tcId": 152,
+    "basis": "Frozen profile rejects small/mixed-order public keys"
+  },
+  "files": {
+    "README.md": "76e2fb1b5b216ec02928e6f6c81a1bdceb01efe2528b0dff5efee4c4eec12d76",
+    "compatibility.py": "591fd53e605cccb0380784422c9522a5b88216c7333c14cb89789f45705d8f6c",
+    "dependency-lock.json": "7d32a920632d70d8ea395ac85539e27146b37781e79aae7f77291d3a38da2fef",
+    "install_offline.py": "f03e406cabaae32abe999209d88d986767061791201ab6df837f4b0b20459ad1",
+    "requirements.lock": "7f5cd28bce599637fe0a342b5ddbf2c4c0f1f714d75ed295087f1ae951ec7efa",
+    "results.json": "785ba8637f652852d08075ff9a5dc59fdcd800e6bdacfcbe35439d1e3b8d0170"
+  }
+}

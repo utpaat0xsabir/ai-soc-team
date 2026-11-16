@@ -89,9 +89,11 @@ config = types.ModuleType('app.core.config')
 config.settings = types.SimpleNamespace(database_url='synthetic-config-only')
 sys.modules['app.config'] = sys.modules['app.core.config'] = config
 from app import db
+from app.audit.integrity import AUDIT_LOCK_PROTOCOL
 assert db.engine is engine and db.SessionLocal is factory
 assert db.get_db.__globals__ is vars(db)
-assert calls == [('engine', 'synthetic-config-only', dict(pool_pre_ping=True, pool_size=5, max_overflow=5, pool_timeout=10)),
+assert calls == [('engine', 'synthetic-config-only', dict(pool_pre_ping=True, pool_size=5, max_overflow=5, pool_timeout=10,
+                                                        connect_args={'application_name': f'ai-soc-team/{AUDIT_LOCK_PROTOCOL}'})),
                  ('factory', dict(bind=engine, autoflush=False, autocommit=False))]
 closed = []
 replacement = types.SimpleNamespace(close=lambda: closed.append(True))

@@ -33,6 +33,7 @@ class FakeSession:
         self.rows=([{'id':TENANT}],[{'id':UUID(int=2),'tenant_id':TENANT,'revoked_at':None}])
         self.statements=[]; self.fetch_sizes=[]; self.rollbacks=0; self.observations=0
         self.failure=None; self.rollback_failure=False
+        self.forbidden_calls=[]
         self.observation=postgres.TransactionObservation(transaction_id=UUID(int=50),read_epoch=UUID(int=51),
             source_ref=ref(800),evaluated_at=NOW,observed_at=NOW,read_only=True,isolation='REPEATABLE READ')
         self.after=None
@@ -49,7 +50,8 @@ class FakeSession:
         self.rollbacks+=1
         if self.rollback_failure: raise RuntimeError('secret-canary')
     def __getattr__(self,name):
-        if name in ('commit','flush','add','add_all','delete','merge','connection','get_bind'):
+        if name in ('commit','flush','add','add_all','delete','merge','connection','get_bind','close'):
+            self.forbidden_calls.append(name)
             raise AssertionError('forbidden database method')
         raise AttributeError(name)
 
@@ -188,3 +190,104 @@ def test_no_import_time_or_runtime_connection_filesystem_network_subprocess(monk
     # Reload replaces strict contract classes; build observations from the current class.
     instance,auth,request,session=provider()
     assert denied(instance,auth,request)=='SCHEMA_INCOMPLETE'
+
+
+@pytest.mark.parametrize('field,value',[
+    ('action','*'),('action','roles.*'),('action','evidence.unknown'),
+    ('policy_version','0.0'),('policy_version','2.0')])
+def test_unsupported_request_metadata_is_rejected_without_session_side_effects(field,value):
+    instance,auth,request,session=provider()
+    request=request.model_copy(update={field:value})
+    assert denied(instance,auth,request)=='INVALID_REQUEST'
+    assert not session.statements and not session.observations and not session.rollbacks
+    assert not session.forbidden_calls
+
+
+@pytest.mark.parametrize('field',['tenant_id','api_key_id'])
+@pytest.mark.parametrize('value',[None,'not-a-uuid',1])
+def test_invalid_authenticated_identifiers_never_reach_session(field,value):
+    from dataclasses import replace
+    instance,auth,request,session=provider()
+    invalid=replace(auth,**{field:value})
+    instance=replace(instance,authenticated=invalid)
+    assert denied(instance,invalid,request)=='IDENTITY_MISMATCH'
+    assert not session.statements and not session.observations and not session.rollbacks
+
+
+@pytest.mark.parametrize('change',['missing_observation','missing_revision','invalid_revision','missing_source',
+    'missing_time','missing_isolation','missing_read_only','numeric_read_only','claimed_issuer','claimed_provenance'])
+def test_incomplete_or_claimed_transaction_authority_has_exact_denial(change):
+    instance,auth,request,session=provider()
+    changes={'missing_revision':{'read_epoch':None},'invalid_revision':{'read_epoch':'not-a-revision'},
+        'missing_source':{'source_ref':None},'missing_time':{'observed_at':None},
+        'missing_isolation':{'isolation':None},'missing_read_only':{'read_only':None},
+        'numeric_read_only':{'read_only':1},'claimed_issuer':{'issuer_ref':ref(600)},
+        'claimed_provenance':{'provenance':'verified'}}
+    session.observation=None if change=='missing_observation' else session.observation.model_copy(update=changes[change])
+    assert denied(instance,auth,request)=='TRANSACTION_UNVERIFIED'
+    assert not session.statements and session.rollbacks==1 and not session.forbidden_calls
+
+
+@pytest.mark.parametrize('shape',['none','dict','generator','scalar_row','nonmapping_row','missing_field','invalid_uuid'])
+def test_unexpected_query_shapes_have_exact_denial_and_cleanup(monkeypatch,shape):
+    instance,auth,request,session=provider()
+    class KeyedNonMapping:
+        def __iter__(self): return iter(('id',))
+        def __getitem__(self,key): return TENANT
+    shapes={'none':None,'dict':{'id':TENANT},'generator':iter(({'id':TENANT},)),
+        'scalar_row':[TENANT],'nonmapping_row':[KeyedNonMapping()],
+        'missing_field':[{}],'invalid_uuid':[{'id':str(TENANT)}]}
+    tenant_rows=session.rows[0]
+    monkeypatch.setattr(FakeResult,'fetchmany',
+        lambda self,size:shapes[shape] if self.rows is tenant_rows else self.rows[:size])
+    assert denied(instance,auth,request)=='RECORDS_INVALID'
+    assert session.rollbacks==1 and not session.forbidden_calls
+
+
+def test_real_sqlalchemy_row_mappings_remain_supported_without_connections():
+    from sqlalchemy.engine import Row
+    from sqlalchemy.engine.result import SimpleResultMetaData
+    instance,auth,request,session=provider()
+    tenant=Row(SimpleResultMetaData(['id']),None,{'id':0},(TENANT,))._mapping
+    key=Row(SimpleResultMetaData(['id','tenant_id','revoked_at']),None,
+        {'id':0,'tenant_id':1,'revoked_at':2},(UUID(int=2),TENANT,None))._mapping
+    session.rows=([tenant],[key])
+    assert denied(instance,auth,request)=='SCHEMA_INCOMPLETE'
+    assert session.rollbacks==1 and not session.forbidden_calls
+
+
+@pytest.mark.parametrize('field',['issuer_ref','provenance','authority_revision','assignments','snapshot'])
+def test_identity_rows_cannot_smuggle_authority_or_revision(field):
+    instance,auth,request,session=provider()
+    tenant,keys=session.rows
+    session.rows=(tenant,[dict(keys[0],**{field:'fabricated'})])
+    assert denied(instance,auth,request)=='RECORDS_INVALID'
+    assert session.rollbacks==1 and not session.forbidden_calls
+
+
+@pytest.mark.parametrize('gap',['authority_provenance','authority_revision'])
+def test_production_provenance_and_revision_remain_explicit_schema_blockers(gap):
+    instance,auth,request,session=provider()
+    assert gap in postgres.SCHEMA_GAPS
+    assert denied(instance,auth,request)=='SCHEMA_INCOMPLETE'
+    assert session.rollbacks==1 and not session.forbidden_calls
+
+
+@pytest.mark.parametrize('epoch',[None,'fabricated',UUID(int=0),UUID(int=51)])
+def test_currency_always_denies_without_touching_session(epoch):
+    instance,_,_,session=provider()
+    assert instance.is_current(epoch) is False
+    assert not session.statements and not session.observations and not session.rollbacks
+
+
+@pytest.mark.parametrize('failure,rollback_failure,reason',[
+    (None,False,'SCHEMA_INCOMPLETE'),('execute',False,'READ_FAILED'),
+    ('observation',False,'TRANSACTION_UNVERIFIED'),('execute',True,'CLEANUP_FAILED')])
+def test_repeated_denials_are_deterministic_and_preserve_dedicated_cleanup(failure,rollback_failure,reason):
+    codes=[]
+    for _ in range(2):
+        instance,auth,request,session=provider()
+        session.failure=failure; session.rollback_failure=rollback_failure
+        codes.append(denied(instance,auth,request))
+        assert session.rollbacks==1 and not session.forbidden_calls
+    assert codes==[reason,reason]

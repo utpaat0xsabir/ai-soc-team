@@ -1,4 +1,32 @@
 .env
+# Local environment overrides; keep the reviewed template visible.
+.env.*
+!.env.example
+
+# Private keys, local certificates and credential stores.
+*.key
+*.pem
+*.crt
+*.cer
+*.der
+*.p12
+*.pfx
+*.jks
+*.keystore
+id_rsa
+id_ecdsa
+id_ed25519
+credentials.local.*
+secrets.local.*
+
+# Explicitly named secret-bearing runtime overrides, not deployment templates.
+*.secrets.json
+*.secrets.yaml
+*.secrets.yml
+
+# Local secret-scan reports; reviewed security documentation remains visible.
+ai-soc-security-reports/
+gitleaks-report.*
 .venv/
 __pycache__/
 *.py[cod]
@@ -14,3 +42,6 @@ build/
 
 # Accidental root-level command artifact
 /pytest
+
+# Rust/Cargo generated build outputs
+**/target/

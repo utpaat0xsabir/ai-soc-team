@@ -1,0 +1,99 @@
+{
+  "classification": "TEST_ONLY_NON_AUTHORIZING",
+  "interpreter": "3.10.12 (main, Aug 31 2026, 10:18:17) [GCC 11.4.0]",
+  "python_environment": {
+    "implementation_name": "cpython",
+    "implementation_version": "3.10.12",
+    "os_name": "posix",
+    "platform_machine": "x86_64",
+    "platform_release": "6.8.0-149-generic",
+    "platform_system": "Linux",
+    "platform_version": "#149~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC Wed Oct 28 20:58:45 UTC ",
+    "python_full_version": "3.10.12",
+    "platform_python_implementation": "CPython",
+    "python_version": "3.10",
+    "sys_platform": "linux",
+    "extra": ""
+  },
+  "artifacts": [
+    {
+      "package": "cryptography",
+      "version": "50.0.2",
+      "filename": "cryptography-50.0.2-cp39-abi3-manylinux_2_28_x86_64.whl",
+      "url": "https://files.pythonhosted.org/packages/4f/87/ef344a9e616871f2519c22d6afcda79ddd5d35e9592d95eb6e677608d055/cryptography-50.0.2-cp39-abi3-manylinux_2_28_x86_64.whl",
+      "metadata_url": "https://pypi.org/pypi/cryptography/50.0.2/json",
+      "sha256": "f21e8a22c8605750c7af886bab299a363721264061b4ac0a30efb73cfd58efc5",
+      "publisher_sha256": "f21e8a22c8605750c7af886bab299a363721264061b4ac0a30efb73cfd58efc5",
+      "independent_metadata_retrieval": true,
+      "bytes": 4781387,
+      "requires_python": "!=3.9.0,!=3.9.1,>=3.9",
+      "active_dependencies": [
+        "cffi>=2.0.0; platform_python_implementation != \"PyPy\"",
+        "typing-extensions>=4.13.2; python_full_version < \"3.11\""
+      ],
+      "wheel_tags": [
+        "cp39-abi3-manylinux_2_28_x86_64"
+      ],
+      "compatible": true,
+      "uploaded": "2026-09-30T15:29:32.605292Z"
+    },
+    {
+      "package": "cffi",
+      "version": "2.0.0",
+      "filename": "cffi-2.0.0-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+      "url": "https://files.pythonhosted.org/packages/98/29/9b366e70e243eb3d14a5cb488dfd3a0b6b2f1fb001a203f653b93ccfac88/cffi-2.0.0-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+      "metadata_url": "https://pypi.org/pypi/cffi/2.0.0/json",
+      "sha256": "fc7de24befaeae77ba923797c7c87834c73648a05a4bde34b3b7e5588973a453",
+      "publisher_sha256": "fc7de24befaeae77ba923797c7c87834c73648a05a4bde34b3b7e5588973a453",
+      "independent_metadata_retrieval": true,
+      "bytes": 216475,
+      "requires_python": ">=3.9",
+      "active_dependencies": [
+        "pycparser; implementation_name != \"PyPy\""
+      ],
+      "wheel_tags": [
+        "cp310-cp310-manylinux2014_x86_64",
+        "cp310-cp310-manylinux_2_17_x86_64"
+      ],
+      "compatible": true,
+      "uploaded": "2025-09-08T23:22:17.427460Z"
+    },
+    {
+      "package": "pycparser",
+      "version": "2.22",
+      "filename": "pycparser-2.22-py3-none-any.whl",
+      "url": "https://files.pythonhosted.org/packages/13/a3/a812df4e2dd5696d1f351d58b8fe16a405b234ad2886a0dab9183fb78109/pycparser-2.22-py3-none-any.whl",
+      "metadata_url": "https://pypi.org/pypi/pycparser/2.22/json",
+      "sha256": "c3702b6d3dd8c7abc1afa565d7e63d53a1d0bd86cdc24edd75470f4de499cfcc",
+      "publisher_sha256": "c3702b6d3dd8c7abc1afa565d7e63d53a1d0bd86cdc24edd75470f4de499cfcc",
+      "independent_metadata_retrieval": true,
+      "bytes": 117552,
+      "requires_python": ">=3.8",
+      "active_dependencies": [],
+      "wheel_tags": [
+        "py3-none-any"
+      ],
+      "compatible": true,
+      "uploaded": "2024-03-30T13:22:20.476234Z"
+    },
+    {
+      "package": "typing-extensions",
+      "version": "4.15.0",
+      "filename": "typing_extensions-4.15.0-py3-none-any.whl",
+      "url": "https://files.pythonhosted.org/packages/18/67/36e9267722cc04a6b9f15c7f3441c2363321a3ea07da7ae0c0707beb2a9c/typing_extensions-4.15.0-py3-none-any.whl",
+      "metadata_url": "https://pypi.org/pypi/typing-extensions/4.15.0/json",
+      "sha256": "f0fa19c6845758ab08074a0cfa8b7aecb71c999ca73d62883bc25cc018c4e548",
+      "publisher_sha256": "f0fa19c6845758ab08074a0cfa8b7aecb71c999ca73d62883bc25cc018c4e548",
+      "independent_metadata_retrieval": true,
+      "bytes": 44614,
+      "requires_python": ">=3.9",
+      "active_dependencies": [],
+      "wheel_tags": [
+        "py3-none-any"
+      ],
+      "compatible": true,
+      "uploaded": "2025-08-25T13:49:24.860024Z"
+    }
+  ],
+  "installer_bootstrap": "OS-provided /usr/share/python-wheels/pip-22.0.2-py3-none-any.whl; not installed in venv"
+}

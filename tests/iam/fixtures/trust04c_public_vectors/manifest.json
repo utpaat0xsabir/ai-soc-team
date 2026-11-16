@@ -1,0 +1,67 @@
+{
+  "manifest_version": "trust04c-public-assets.1",
+  "classification": "PUBLIC_NON_SECRET_TEST_ONLY",
+  "created_on": "2026-11-16",
+  "scope": "public verification inputs only; not project signing-frame goldens; no production trust",
+  "hashing_signing_verification": "NOT_EXECUTED; only POSIX CRC file-integrity checks",
+  "assets": [
+    {
+      "filename": "rfc8032-section7_1-verification-only.json",
+      "classification": "PUBLIC_NON_SECRET_TEST_ONLY",
+      "source_url": "https://www.rfc-editor.org/rfc/rfc8032.txt",
+      "source_version": "RFC 8032 January 2017",
+      "retrieved_on": "2026-11-16",
+      "license_or_reuse_constraints": "BCP78 / IETF Trust Legal Provisions; factual verification-only extraction; no RFC code copied",
+      "publisher_checksum_or_object_id": null,
+      "local_integrity": {
+        "utility": "POSIX cksum CRC (non-cryptographic)",
+        "crc": "1429421017",
+        "bytes": 1848
+      },
+      "format": "JSON verification data",
+      "source_authenticity": "HTTPS from RFC Editor or commit-pinned C2SP publisher repository; no independent publisher signature verification",
+      "independent_review_status": "PENDING",
+      "local_signature_verification": "NOT_EXECUTED"
+    },
+    {
+      "filename": "wycheproof-ed25519-a3d5d142.json",
+      "classification": "PUBLIC_NON_SECRET_TEST_ONLY",
+      "source_url": "https://raw.githubusercontent.com/C2SP/wycheproof/a3d5d1423f2592d6646836a45a21a1b209da9f4d/testvectors_v1/ed25519_test.json",
+      "source_version": "a3d5d1423f2592d6646836a45a21a1b209da9f4d",
+      "retrieved_on": "2026-11-16",
+      "license_or_reuse_constraints": "Apache-2.0; accompanying upstream LICENSE retained",
+      "publisher_checksum_or_object_id": {
+        "kind": "GitHub contents API git_blob_sha",
+        "value": "3f991dd56496129e3a99b6b486408ef8f3df6945",
+        "locally_verified": false
+      },
+      "local_integrity": {
+        "utility": "POSIX cksum CRC (non-cryptographic)",
+        "crc": "2425208181",
+        "bytes": 172628
+      },
+      "format": "JSON verification data",
+      "source_authenticity": "HTTPS from RFC Editor or commit-pinned C2SP publisher repository; no independent publisher signature verification",
+      "independent_review_status": "PENDING",
+      "local_signature_verification": "NOT_EXECUTED"
+    },
+    {
+      "filename": "LICENSE.wycheproof.txt",
+      "classification": "PUBLIC_NON_SECRET_TEST_ONLY",
+      "source_url": "https://raw.githubusercontent.com/C2SP/wycheproof/a3d5d1423f2592d6646836a45a21a1b209da9f4d/LICENSE",
+      "source_version": "a3d5d1423f2592d6646836a45a21a1b209da9f4d",
+      "retrieved_on": "2026-11-16",
+      "license_or_reuse_constraints": "Upstream Apache-2.0 license text",
+      "publisher_checksum_or_object_id": null,
+      "local_integrity": {
+        "utility": "POSIX cksum CRC (non-cryptographic)",
+        "crc": "608758943",
+        "bytes": 11357
+      },
+      "format": "plain-text upstream license",
+      "source_authenticity": "HTTPS from RFC Editor or commit-pinned C2SP publisher repository; no independent publisher signature verification",
+      "independent_review_status": "PENDING",
+      "local_signature_verification": "NOT_EXECUTED"
+    }
+  ]
+}

@@ -27,11 +27,27 @@ def test_rendered_plan_is_transactional_guarded_and_contains_no_login_secret():
 def test_runtime_profile_does_not_grant_mutable_history_or_keys():
     sql = '\n'.join(runtime_grants_sql(RolePlan()))
     grants = [line for line in sql.splitlines() if line.startswith('GRANT ')]
+    assert 'GRANT UPDATE ("created_at") ON TABLE "public"."tenants" TO "ai_soc_runtime";' in grants
     for line in grants:
         if '"audit_logs"' in line or '"evidence_records"' in line:
             assert 'UPDATE' not in line and 'DELETE' not in line and 'TRUNCATE' not in line
         if '"tenant_api_keys"' in line:
             assert 'INSERT' not in line and 'UPDATE' not in line
+
+
+def test_advisory_candidate_profile_omits_tenant_update_but_keeps_integration_lock():
+    sql = runtime_grants_sql(RolePlan(audit_lock_protocol='advisory'))
+
+    assert not any('GRANT UPDATE ("created_at") ON TABLE "public"."tenants"' in line
+                   for line in sql)
+    assert any('GRANT UPDATE ("created_at") ON TABLE "public"."wazuh_integrations"' in line
+               for line in sql)
+    assert any('GRANT SELECT ON TABLE "public"."tenants"' in line for line in sql)
+
+
+def test_unknown_audit_lock_role_profile_is_rejected():
+    with pytest.raises(ValueError, match='invalid_audit_lock_protocol'):
+        RolePlan(audit_lock_protocol='automatic')
 
 
 def test_generator_cli_only_prints_sql_and_never_connects(monkeypatch, capsys):

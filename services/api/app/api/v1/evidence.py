@@ -71,6 +71,7 @@ def ingest_evidence(
 
     try:
         db.add(record)
+        db.flush()
 
         record_audit_event(
             db,

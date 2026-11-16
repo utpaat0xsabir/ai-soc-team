@@ -2,16 +2,43 @@
 import hashlib
 import hmac
 import json
+from collections.abc import Callable
 from datetime import datetime, timezone
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.database.models import AuditLog, Tenant
 
 
 GENESIS_HASH = "0" * 64
+AUDIT_LOCK_PROTOCOL = "tenant-row-no-key-update-v1"
+_AUDIT_LOCK_DOMAIN = b"ai-soc-team:audit-chain:v1\x00"
+
+
+def _audit_advisory_lock_key(tenant_id: UUID) -> int:
+    """Return a stable PostgreSQL bigint lock key, never an authorization ID."""
+
+    digest = hashlib.sha256(_AUDIT_LOCK_DOMAIN + tenant_id.bytes).digest()
+    # A 64-bit collision only serializes unrelated tenants; queries retain the UUID.
+    return int.from_bytes(digest[:8], byteorder="big", signed=True)
+
+
+def _lock_tenant_row(db: Session, tenant_id: UUID) -> Tenant | None:
+    return db.scalar(
+        select(Tenant)
+        .where(Tenant.id == tenant_id)
+        # FOR NO KEY UPDATE is compatible with evidence FK KEY SHARE locks.
+        .with_for_update(key_share=True)
+    )
+
+
+def _lock_tenant_advisory_candidate(db: Session, tenant_id: UUID) -> Tenant | None:
+    """Unactivated candidate; lock errors propagate for caller rollback."""
+
+    db.execute(select(func.pg_advisory_xact_lock(_audit_advisory_lock_key(tenant_id))))
+    return db.scalar(select(Tenant).where(Tenant.id == tenant_id))
 
 
 def calculate_audit_hash(
@@ -133,13 +160,58 @@ def record_audit_event(
 ) -> AuditLog:
     """Add a hash-chained audit event to the current transaction."""
 
-    tenant = db.scalar(
-        select(Tenant)
-        .where(Tenant.id == tenant_id)
-        # PostgreSQL FOR NO KEY UPDATE serializes audit writers while allowing
-        # evidence FK KEY SHARE locks; FOR UPDATE can deadlock on that upgrade.
-        .with_for_update(key_share=True)
+    return _record_audit_event(
+        db,
+        tenant_id=tenant_id,
+        actor_type=actor_type,
+        actor_id=actor_id,
+        action=action,
+        resource_type=resource_type,
+        resource_id=resource_id,
+        details=details,
+        lock_tenant=_lock_tenant_row,
     )
+
+
+def _record_audit_event_advisory_candidate(
+    db: Session,
+    *,
+    tenant_id: UUID,
+    actor_type: str,
+    actor_id: UUID | None,
+    action: str,
+    resource_type: str,
+    resource_id: UUID | None = None,
+    details: dict | None = None,
+) -> AuditLog:
+    """Exercise advisory sequencing without changing the production default."""
+
+    return _record_audit_event(
+        db,
+        tenant_id=tenant_id,
+        actor_type=actor_type,
+        actor_id=actor_id,
+        action=action,
+        resource_type=resource_type,
+        resource_id=resource_id,
+        details=details,
+        lock_tenant=_lock_tenant_advisory_candidate,
+    )
+
+
+def _record_audit_event(
+    db: Session,
+    *,
+    tenant_id: UUID,
+    actor_type: str,
+    actor_id: UUID | None,
+    action: str,
+    resource_type: str,
+    resource_id: UUID | None,
+    details: dict | None,
+    lock_tenant: Callable[[Session, UUID], Tenant | None],
+) -> AuditLog:
+    tenant = lock_tenant(db, tenant_id)
 
     if tenant is None:
         raise ValueError("audit_tenant_not_found")

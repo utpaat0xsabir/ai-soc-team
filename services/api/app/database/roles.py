@@ -27,10 +27,13 @@ class RolePlan:
     owner_role: str = 'ai_soc_owner'
     runtime_role: str = 'ai_soc_runtime'
     migrator_role: str = 'ai_soc_migrator'
+    audit_lock_protocol: str = 'tenant_row'
 
     def __post_init__(self):
         if self.database not in ('ai_soc', 'ai_soc_test'):
             raise ValueError('invalid_role_plan_database')
+        if self.audit_lock_protocol not in ('tenant_row', 'advisory'):
+            raise ValueError('invalid_audit_lock_protocol')
         _identifier(self.schema)
         if self.schema.startswith('pg_') or self.schema == 'information_schema':
             raise ValueError('invalid_role_plan_schema')
@@ -93,7 +96,9 @@ def runtime_grants_sql(plan: RolePlan) -> tuple[str, ...]:
         statements.append(f'GRANT SELECT, INSERT ON TABLE {schema}.{_identifier(table)} TO {runtime};')
     for table in ('wazuh_sync_checkpoints', 'wazuh_sync_leases'):
         statements.append(f'GRANT SELECT, INSERT, UPDATE ON TABLE {schema}.{_identifier(table)} TO {runtime};')
-    for table in ('tenants', 'wazuh_integrations'):
+    lock_tables = ('wazuh_integrations',) if plan.audit_lock_protocol == 'advisory' else (
+        'tenants', 'wazuh_integrations')
+    for table in lock_tables:
         statements.append(f'GRANT UPDATE ("created_at") ON TABLE {schema}.{_identifier(table)} TO {runtime};')
     return tuple(statements)
 
@@ -132,6 +137,7 @@ def main(argv=None):
     parser.add_argument('--owner-role', default='ai_soc_owner')
     parser.add_argument('--runtime-role', default='ai_soc_runtime')
     parser.add_argument('--migrator-role', default='ai_soc_migrator')
+    parser.add_argument('--audit-lock-protocol', choices=('tenant_row', 'advisory'), default='tenant_row')
     args = parser.parse_args(argv)
     try:
         sql = render_sql(RolePlan(**vars(args)))

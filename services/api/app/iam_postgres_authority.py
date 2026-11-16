@@ -5,6 +5,7 @@ from app.iam.postgres_authority import (
     ErrorCode as ErrorCode,
     InjectedReadSession as InjectedReadSession,
     Literal as Literal,
+    Mapping as Mapping,
     PostgresAuthorityProvider as PostgresAuthorityProvider,
     Protocol as Protocol,
     SCHEMA_GAPS as SCHEMA_GAPS,

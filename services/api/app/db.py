@@ -1,6 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from app.audit.integrity import AUDIT_LOCK_PROTOCOL
 from app.core.config import settings
 
 engine = create_engine(
@@ -9,6 +10,7 @@ engine = create_engine(
     pool_size=5,
     max_overflow=5,
     pool_timeout=10,
+    connect_args={"application_name": f"ai-soc-team/{AUDIT_LOCK_PROTOCOL}"},
 )
 
 SessionLocal = sessionmaker(
