@@ -3,13 +3,14 @@
 from datetime import datetime
 
 from app.analysts import contracts, evaluation, inference
+from app.analysts.evidence_adapter import StoredEvidenceAdapter, TrustedEvidenceAdapter
 from app.gateway.contracts import TrustedContext
 
 
 def _orchestrate_l1_with_receipt(
     context: TrustedContext,
     task: contracts.AnalystTask,
-    evidence: tuple[contracts.EvidenceReference, ...],
+    evidence: tuple[contracts.EvidenceReference, ...] | TrustedEvidenceAdapter | StoredEvidenceAdapter,
     configuration: inference.InferenceConfiguration,
     provider: inference.FakeModelProvider,
     admission: inference.AdmissionController,
@@ -29,6 +30,16 @@ def _orchestrate_l1_with_receipt(
             status='DENIED', reason='INVALID_INPUT', request_id=None, request_sha256=None
         ), None, None
     try:
+        if type(evidence) in (TrustedEvidenceAdapter, StoredEvidenceAdapter):
+            if type(context) is not TrustedContext:
+                raise ValueError('invalid_analyst_inputs')
+            context = TrustedContext.model_validate(context)
+            contracts._bounded(task)
+            task = contracts.AnalystTask.model_validate(task)
+            if (task.tenant_id != context.tenant_id or task.principal_id != context.principal_id
+                    or task.classification != 'SYNTHETIC / TEST ONLY'):
+                raise ValueError('invalid_analyst_inputs')
+            evidence = evidence.load_bundle(context, task.original_evidence_ids)
         snapshot = contracts.build_snapshot(
             context,
             snapshot_id=task.snapshot_id,
@@ -59,7 +70,7 @@ def _orchestrate_l1_with_receipt(
 def orchestrate_l1(
     context: TrustedContext,
     task: contracts.AnalystTask,
-    evidence: tuple[contracts.EvidenceReference, ...],
+    evidence: tuple[contracts.EvidenceReference, ...] | TrustedEvidenceAdapter | StoredEvidenceAdapter,
     configuration: inference.InferenceConfiguration,
     provider: inference.FakeModelProvider,
     admission: inference.AdmissionController,
@@ -82,7 +93,7 @@ def orchestrate_l1(
 def orchestrate_l1_review(
     context: TrustedContext,
     task: contracts.AnalystTask,
-    evidence: tuple[contracts.EvidenceReference, ...],
+    evidence: tuple[contracts.EvidenceReference, ...] | TrustedEvidenceAdapter | StoredEvidenceAdapter,
     configuration: inference.InferenceConfiguration,
     provider: inference.FakeModelProvider,
     admission: inference.AdmissionController,

@@ -129,12 +129,15 @@ class EvidenceReference(_Contract):
                 source_type=self.source_type, source_reference=self.source_reference,
                 collector_name=self.collector_name, collector_version=self.collector_version,
                 trust_level=self.trust_level, event_time=self.event_time, payload=payload)
-            if not hmac.compare_digest(self.content_sha256, expected):
-                raise ValueError()
-            object.__setattr__(self, 'payload_json', json.dumps(payload, sort_keys=True,
-                separators=(',', ':'), ensure_ascii=True, allow_nan=False))
+            canonical_payload = json.dumps(payload, sort_keys=True,
+                separators=(',', ':'), ensure_ascii=True, allow_nan=False)
         except Exception:
             raise ValueError('invalid_analyst_evidence') from None
+        if not hmac.compare_digest(self.content_sha256, expected):
+            from pydantic_core import PydanticCustomError
+
+            raise PydanticCustomError('analyst_evidence_hash_mismatch', 'invalid_analyst_evidence')
+        object.__setattr__(self, 'payload_json', canonical_payload)
         return self
 
 
