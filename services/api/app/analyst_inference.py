@@ -12,6 +12,7 @@ from app.analysts.inference import (
     Identifier as Identifier,
     InferenceConfiguration as InferenceConfiguration,
     InferenceControl as InferenceControl,
+    InferenceExecutionReceipt as InferenceExecutionReceipt,
     InferenceRequest as InferenceRequest,
     InferenceResult as InferenceResult,
     Iterator as Iterator,
@@ -31,6 +32,7 @@ from app.analysts.inference import (
     _Stop as _Stop,
     _hash as _hash,
     _prepare_request as _prepare_request,
+    _run_inference as _run_inference,
     _request_identity as _request_identity,
     _trusted as _trusted,
     ai as ai,
@@ -42,6 +44,7 @@ from app.analysts.inference import (
     prepare_request as prepare_request,
     protocol as protocol,
     run_inference as run_inference,
+    run_inference_with_receipt as run_inference_with_receipt,
     timedelta as timedelta,
     uuid5 as uuid5,
 )

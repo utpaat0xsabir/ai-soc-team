@@ -381,10 +381,25 @@ class InferenceResult(_Contract):
         return self
 
 
-def run_inference(context: TrustedContext, task: ai.AnalystTask, snapshot: ai.EvidenceSnapshot,
+@dataclass(frozen=True, slots=True)
+class InferenceExecutionReceipt:
+    """In-process record of a completed synthetic inference.
+
+    Not cryptographic attestation or execution authorization.
+    Never serialize this object directly into external responses.
+    """
+
+    request: InferenceRequest
+    result: InferenceResult
+    proposed_only: Literal[True] = True
+    executable: Literal[False] = False
+
+
+def _run_inference(context: TrustedContext, task: ai.AnalystTask, snapshot: ai.EvidenceSnapshot,
                   package: evaluation.AnalystInput, configuration: InferenceConfiguration,
                   provider: LocalInferenceProvider, admission: AdmissionController, control: InferenceControl,
-                  *, forbidden_values: tuple[str,...] = ()) -> InferenceResult:
+                  *, forbidden_values: tuple[str,...] = (),
+                  _receipt_sink: list[InferenceExecutionReceipt] | None = None) -> InferenceResult:
     """Closed fake/script and mock-HTTP implementations only; no live transport."""
     request,acquired = None,False
     parsed = None
@@ -491,4 +506,81 @@ def run_inference(context: TrustedContext, task: ai.AnalystTask, snapshot: ai.Ev
                 request_sha256=result.request_sha256)
             if len(ai.canonical_bytes(result))>limit:
                 raise ValueError('invalid_inference_result_budget') from None
+    # Capture only the final successful result, after all checks.
+    # The caller must treat this as in-process execution evidence,
+    # never as an independently authenticated credential.
+    if (
+        _receipt_sink is not None
+        and result.status == 'COMPLETED'
+        and request is not None
+    ):
+        _receipt_sink.append(
+            InferenceExecutionReceipt(
+                request=request,
+                result=result,
+            )
+        )
+
     return result
+
+
+def run_inference(
+    context: TrustedContext,
+    task: ai.AnalystTask,
+    snapshot: ai.EvidenceSnapshot,
+    package: evaluation.AnalystInput,
+    configuration: InferenceConfiguration,
+    provider: LocalInferenceProvider,
+    admission: AdmissionController,
+    control: InferenceControl,
+    *,
+    forbidden_values: tuple[str, ...] = (),
+) -> InferenceResult:
+    """Public inference interface; no caller-supplied receipt sink."""
+
+    return _run_inference(
+        context,
+        task,
+        snapshot,
+        package,
+        configuration,
+        provider,
+        admission,
+        control,
+        forbidden_values=forbidden_values,
+    )
+
+
+def run_inference_with_receipt(
+    context: TrustedContext,
+    task: ai.AnalystTask,
+    snapshot: ai.EvidenceSnapshot,
+    package: evaluation.AnalystInput,
+    configuration: InferenceConfiguration,
+    provider: LocalInferenceProvider,
+    admission: AdmissionController,
+    control: InferenceControl,
+    *,
+    forbidden_values: tuple[str, ...] = (),
+) -> tuple[InferenceResult, InferenceExecutionReceipt | None]:
+    """Run inference and capture the code-owned successful request."""
+
+    receipts: list[InferenceExecutionReceipt] = []
+
+    result = _run_inference(
+        context,
+        task,
+        snapshot,
+        package,
+        configuration,
+        provider,
+        admission,
+        control,
+        forbidden_values=forbidden_values,
+        _receipt_sink=receipts,
+    )
+
+    if len(receipts) == 1:
+        return result, receipts[0]
+
+    return result, None
