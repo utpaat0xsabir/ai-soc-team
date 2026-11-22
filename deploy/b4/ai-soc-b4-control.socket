@@ -1,0 +1,12 @@
+[Unit]
+Description=B4 broker control socket
+
+[Socket]
+ListenStream=/run/ai-soc-b4/control.sock
+Service=ai-soc-b4-broker.service
+SocketUser=root
+SocketGroup=ai-soc-b4
+SocketMode=0660
+DirectoryMode=0755
+FileDescriptorName=control
+Backlog=8

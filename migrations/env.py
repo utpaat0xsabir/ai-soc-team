@@ -19,7 +19,10 @@ API_PATH = os.path.join(PROJECT_ROOT, "services", "api")
 
 sys.path.insert(0, API_PATH)
 
-from app.core.config import settings
+from app.database.migration_guard import (
+    Denied, check_legacy_revisions, deny_purge, guarded_environment, restrict_legacy_context,
+    run_guarded_environment, run_locked_legacy, verify_legacy_heads,
+)
 from app.database.models import Base, Tenant, EvidenceRecord, EvidenceLineage, TenantAPIKey, AuditLog, WazuhIntegration, WazuhSyncCheckpoint, WazuhSyncLease  # noqa: F401,E402
 
 config = context.config
@@ -205,6 +208,8 @@ def _advisory_migration_target(connection):
 def run_migrations_offline():
     if os.environ.get("AI_SOC_ADVISORY_RUN_ID"):
         raise RuntimeError("offline migrations are forbidden for advisory disposable target")
+    from app.core.config import settings
+
     context.configure(
         url=settings.database_url,
         target_metadata=target_metadata,
@@ -213,8 +218,7 @@ def run_migrations_offline():
         compare_type=True,
     )
 
-    with context.begin_transaction():
-        context.run_migrations()
+    run_legacy_migrations()
 
 
 def run_migrations_online():
@@ -222,7 +226,12 @@ def run_migrations_online():
     disposable = bool(os.environ.get("AI_SOC_ADVISORY_RUN_ID"))
     if disposable and os.environ.get("AI_SOC_ADVISORY_EXECUTION", "host") not in {"host", "container"}:
         raise RuntimeError("unsupported advisory migration execution mode")
-    database_url = os.environ.get("DATABASE_URL") if disposable else settings.database_url
+    if disposable:
+        database_url = os.environ.get("DATABASE_URL")
+    else:
+        from app.core.config import settings
+
+        database_url = settings.database_url
     configuration["sqlalchemy.url"] = database_url.replace("%", "%%")
 
     connectable = engine_from_config(
@@ -231,21 +240,41 @@ def run_migrations_online():
         poolclass=pool.NullPool,
     )
 
-    with connectable.connect() as connection:
-        _advisory_migration_target(connection)
-        context.configure(
-            connection=connection,
-            target_metadata=target_metadata,
-            compare_type=True,
-        )
-
-        with context.begin_transaction():
-            context.run_migrations()
-
-    connectable.dispose()
+    try:
+        with connectable.connect() as connection:
+            _advisory_migration_target(connection)
+            run_locked_legacy(context, target_metadata, connection)
+    finally:
+        connectable.dispose()
 
 
-if context.is_offline_mode():
-    run_migrations_offline()
-else:
-    run_migrations_online()
+def run_legacy_migrations():
+    migration = context.get_context()
+    deny_purge(migration)
+    restrict_legacy_context(migration)
+    with context.begin_transaction():
+        verify_legacy_heads(migration.get_current_heads())
+        context.run_migrations()
+
+
+def main():
+    active = guarded_environment()
+    if active is not None:
+        run_guarded_environment(context, active, target_metadata)
+        return
+    if "connection" in config.attributes:
+        raise Denied("guarded_connection_required")
+    try:
+        destination = context.get_revision_argument()
+    except KeyError:
+        # Commands such as autogenerate have no explicit destination.
+        destination = None
+    if destination:
+        check_legacy_revisions((destination,) if isinstance(destination, str) else destination)
+    if context.is_offline_mode():
+        run_migrations_offline()
+    else:
+        run_migrations_online()
+
+
+main()

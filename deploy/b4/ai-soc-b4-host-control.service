@@ -1,0 +1,34 @@
+[Unit]
+Description=B4 protected checkpoint and worker watchdog
+Requires=ai-soc-b4-host-control.socket b4workers.slice
+After=ai-soc-b4-host-control.socket b4workers.slice
+
+[Service]
+Type=exec
+User=root
+Group=root
+ExecStart=/opt/ai-soc-b4-host-control/venv/bin/python -IB /opt/ai-soc-b4-host-control/scripts/b4_host_control.py
+UMask=0077
+NoNewPrivileges=yes
+CapabilityBoundingSet=CAP_KILL
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+RestrictNamespaces=yes
+RestrictSUIDSGID=yes
+RestrictAddressFamilies=AF_UNIX
+IPAddressDeny=any
+ReadWritePaths=/var/lib/ai-soc-b4-host-control
+ReadOnlyPaths=/sys/fs/cgroup
+ReadWritePaths=/sys/fs/cgroup/b4workers.slice
+TasksMax=12
+MemoryMax=256M
+CPUQuota=50%
+LimitNOFILE=64
+LimitCORE=0
+Restart=on-failure
+RestartSec=1s

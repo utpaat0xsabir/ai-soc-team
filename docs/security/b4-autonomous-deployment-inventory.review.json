@@ -1,0 +1,307 @@
+{
+  "accounts": {
+    "ai-soc-b4": {
+      "gid": 147,
+      "uid": 136
+    },
+    "authority": "ai-soc-b4-authority",
+    "controller": "root",
+    "worker": "ai-soc-b4-worker (DynamicUser)"
+  },
+  "activation_order": [
+    "Verify protected runtime and configuration",
+    "b4workers.slice and host-control socket before authority socket",
+    "Control, worker and Docker-inspection sockets before broker",
+    "Worker only after readiness, admission and independently authorized execution"
+  ],
+  "additional_reviewed_inputs": [
+    "pinned interpreters and dependencies",
+    "worker bootstrap/worker executable",
+    "protected approval and runtime configuration",
+    "independent trust anchors",
+    "custodian-approved recovery unit",
+    "admission and freeze enforcement",
+    "loss-detecting authenticated session source"
+  ],
+  "archive_sha256": "2d13f46d63c4d96ab16587425b2fbbf0b03f44c9329c372c16e9ba475d11cfb3",
+  "candidate": "source-registry-execution-manifest.autonomous-b4.candidate.json",
+  "candidate_sha256": "fb7c30d28d4a8da4987a7dea4d9507062dfe10bab39d72fdb9d6f6de6fcef0a1",
+  "failure_recovery": "Close admission, preserve both journals and the freeze, reconcile by signed recovery.",
+  "prior_approved_sha256": "d829b2916ab5b1fd54fe9113fa7ef3784744aff68675cdd7b29b2338de008de5",
+  "protected_directories": {
+    "/etc/ai-soc-b4": {
+      "group": "root",
+      "mode": "0700",
+      "owner": "root"
+    },
+    "/etc/ai-soc-b4-authority": {
+      "group": "ai-soc-b4-authority",
+      "mode": "0750",
+      "owner": "root"
+    },
+    "/etc/ai-soc-b4-authority/grants": {
+      "group": "ai-soc-b4-authority",
+      "mode": "0750",
+      "owner": "root"
+    },
+    "/etc/ai-soc-b4-authority/records": {
+      "group": "ai-soc-b4-authority",
+      "mode": "0750",
+      "owner": "root"
+    },
+    "/etc/ai-soc-b4/broker": {
+      "group": "root",
+      "mode": "0700",
+      "owner": "root"
+    },
+    "/etc/ai-soc-b4/broker/grants": {
+      "group": "root",
+      "mode": "0700",
+      "owner": "root"
+    },
+    "/etc/ai-soc-b4/broker/records": {
+      "group": "root",
+      "mode": "0700",
+      "owner": "root"
+    },
+    "/etc/ai-soc-b4/host-control": {
+      "group": "root",
+      "mode": "0700",
+      "owner": "root"
+    },
+    "/etc/ai-soc-b4/host-control/grants": {
+      "group": "root",
+      "mode": "0700",
+      "owner": "root"
+    },
+    "/etc/ai-soc-b4/host-control/records": {
+      "group": "root",
+      "mode": "0700",
+      "owner": "root"
+    },
+    "/opt/ai-soc-b4-authority": {
+      "group": "root",
+      "mode": "0755",
+      "owner": "root"
+    },
+    "/opt/ai-soc-b4-broker": {
+      "group": "root",
+      "mode": "0755",
+      "owner": "root"
+    },
+    "/opt/ai-soc-b4-host-control": {
+      "group": "root",
+      "mode": "0755",
+      "owner": "root"
+    },
+    "/opt/ai-soc-b4-worker": {
+      "group": "root",
+      "mode": "0755",
+      "owner": "root"
+    },
+    "/run/ai-soc-b4": {
+      "group": "root",
+      "mode": "0755",
+      "owner": "root"
+    },
+    "/var/lib/ai-soc-b4": {
+      "group": "ai-soc-b4",
+      "mode": "0750",
+      "owner": "root"
+    },
+    "/var/lib/ai-soc-b4-authority": {
+      "group": "ai-soc-b4-authority",
+      "mode": "0700",
+      "owner": "ai-soc-b4-authority"
+    },
+    "/var/lib/ai-soc-b4-host-control": {
+      "group": "root",
+      "mode": "0700",
+      "owner": "root"
+    },
+    "/var/lib/ai-soc-b4/broker": {
+      "group": "root",
+      "mode": "0700",
+      "owner": "root"
+    },
+    "/var/lib/ai-soc-b4/evidence": {
+      "group": "ai-soc-b4",
+      "mode": "0700",
+      "owner": "ai-soc-b4"
+    },
+    "/var/lib/ai-soc-b4/pins": {
+      "group": "ai-soc-b4",
+      "mode": "0750",
+      "owner": "root"
+    },
+    "/var/lib/ai-soc-b4/records": {
+      "group": "ai-soc-b4",
+      "mode": "0750",
+      "owner": "root"
+    },
+    "/var/lib/ai-soc-b4/replay": {
+      "group": "ai-soc-b4",
+      "mode": "0700",
+      "owner": "ai-soc-b4"
+    }
+  },
+  "required_ipc_group": "ai-soc-b4-worker-ipc",
+  "runtime_roots": [
+    "/opt/ai-soc-b4-broker",
+    "/opt/ai-soc-b4-worker",
+    "/opt/ai-soc-b4-authority",
+    "/opt/ai-soc-b4-host-control"
+  ],
+  "source_hashes": {
+    "alembic.ini": "f400af56433fc1fd8821285fcb05778dca3c6bdfb51880dd5f9e8d19343154be",
+    "deploy/b4/ai-soc-b4-authority.service": "774c15165a2fa2ae784c713f39a6ef1e3f80843876a2137791ca1c3293ceadc8",
+    "deploy/b4/ai-soc-b4-authority.socket": "1e1b19c66dff3e32386156d7ac5617a02892bb73f904f263983c823d72014fc8",
+    "deploy/b4/ai-soc-b4-broker.service": "fb32b5b079b38338da4f0182bc347b4cf39b83bcbadcfb7de34366578000003f",
+    "deploy/b4/ai-soc-b4-control.socket": "24ee1add105265292a61337ddc4d67291c55a8b4b1c5cf84f5f89b2838864da0",
+    "deploy/b4/ai-soc-b4-docker-inspect.socket": "1da4d0eb4133494029377d1b525c6f39c0b6e1c5f874c80db1d42404169ff748",
+    "deploy/b4/ai-soc-b4-host-control.service": "15cb2aff60c1af68836f1ac621f876af46e98e98342114e98eff432a839f3d3d",
+    "deploy/b4/ai-soc-b4-host-control.socket": "9f9c8c7f30f0ac615cac719a8a696f0383c3d5b130c6985262f9d09aeb9a71a9",
+    "deploy/b4/ai-soc-b4-worker.socket": "b1ae5cb68ab086051441c91141bd1c728cad98e9103cc1a3a6dc648618418870",
+    "deploy/b4/ai-soc-b4-worker@.service": "624854ae5c6324f2768e3ec3b8d880f2a57d104604bc3596de4da9a9cec3bcf6",
+    "deploy/b4/b4workers.slice": "3e23d5ab3b648226a771f32538e3aafb833b0d8e24143db41f2b790e8ccf507d",
+    "docs/security/source-registry-migration-gates.md": "8c46dcbd96cae5fdd28f7281f0f7623428510ce831fc2f76a814f21048a17f28",
+    "migrations/env.py": "566223e8c2dcd92b5244334d352849b24c7003a3e1070816b9e4a7884ebc4ca6",
+    "migrations/versions/013505dd4ffd_add_unique_tenant_scoped_wazuh_evidence_.py": "51c88940c83aa43637335d67c70e72cd5f56d0859acae9a3c9ec764b2ba4fbab",
+    "migrations/versions/1e6b673facf2_add_tenant_api_keys.py": "e024d67fec7adbf8fca960e5c6ac822390314b156bfbaf4f9d12291ccaa8d1c0",
+    "migrations/versions/20d4e84d93ca_add_audit_log_hash_chain.py": "932f374d48705733d6c0da331ab5cec6c426a7644a0043ade9ee120615f577c6",
+    "migrations/versions/211e576b1806_add_append_only_audit_logs.py": "b79ea4245a378ee712b8ec305a369554fda46a1377928380900fe2a6a53c7688",
+    "migrations/versions/5ad5e0e78db3_add_tenant_scoped_wazuh_integrations.py": "9ac3ed845144a7a61a8074ca74220000eace978dfd20e0e3ec285142c837dd21",
+    "migrations/versions/6cf3679d8b90_create_tenant_and_evidence_tables.py": "c33defb6a69b681bac6fa880500d51ffab59f83a580bf5c84f0f7dbd7a930782",
+    "migrations/versions/b71a4c2d9e10_add_wazuh_sync_checkpoints.py": "6accbe5e34c3f312fc88330fdccb9784024c334aebe8d6591c777d123fd3cad1",
+    "migrations/versions/c82b5d3ea021_add_wazuh_sync_leases.py": "f11930cc0b896f8c74c65008b258c1f8978fca0187b9e7919c00f13130eba3e3",
+    "migrations/versions/d93c6e4fb132_add_wazuh_attempt_status.py": "d1438b24d12f081c703f6c05933431adebe0e42c397808b2b50cbe4c6a92cc62",
+    "migrations/versions/e4b2b2000001_stage_source_registry.py": "8a8bd7d82c2af286300a4d98969e6f4de2ba28d2f8b511874fac089103df2a26",
+    "pyproject.toml": "347244c2aacb9d650b919525aa71df8180dae779a67627bd163733182455478f",
+    "requirements.txt": "1a1c852a2f59925862342cbdd15742d5f3b621705d8f436d89f6a0c2e3e51f72",
+    "scripts/b4_authority.py": "b57be68a7d3fc233b46662658aa1766fa221d861060a22bd0a695681c3962ce6",
+    "scripts/b4_host_control.py": "4018ca3a654662e0f1d9c188706be77dbfa19ec7a1686c50c499cfa534dec2c4",
+    "scripts/b4_preflight_bootstrap.py": "f43753e7a693f7aaa62a93022ce0664f0d18e216e3f9539a5d7f6fd5ef3727ad",
+    "scripts/provision_b4.py": "705e75373be9f26ac6e81aee34964ba975add1e558578e2106bd9d43c5152a23",
+    "scripts/run_guarded_migration.py": "56616edb8c9f51320a606a94b5b6ded549c7119bd7e353b2b5ab3622d68705ae",
+    "services/api/app/analysts/classification_authority.py": "fe77903b62ffce52fdfceeff1abf47a385d15ec0dee39a566541d1c7b8c8a869",
+    "services/api/app/analysts/contracts.py": "46eec523a18c4cdf3fd2988b3c87550d02421f7651f9d3407cbd72ad731a6853",
+    "services/api/app/analysts/evidence_adapter.py": "5e15c9a8db54429a0bec5e5e62cff5b73f251cef41a0769e47c31431d3664c0c",
+    "services/api/app/analysts/evidence_admission.py": "a26f92878785594f69e6da4c3b8902a434f01e98cdf0407c54b567a97a2054c8",
+    "services/api/app/analysts/inference.py": "89585a3eea5ef068c792a66427e38fdf8088f0b9a798957c05aacc776231e064",
+    "services/api/app/analysts/orchestration.py": "24eea7f055ddfd6f6a8bc1fb4ee4f99ab0fc6f21407a13b9c98a51aa5db9fad8",
+    "services/api/app/analysts/postgres_classification.py": "6cb9b5431d4c6549dee640530be794c8a0528f1ef463b057d113fd8df6cc5df2",
+    "services/api/app/analysts/postgres_evidence.py": "a660378b96d3d98fcbfc15319b08403bcdb4c4f07630cac9174dfe37bcc20cf3",
+    "services/api/app/analysts/postgres_source_verification.py": "2cc06ec9913bd66e6303623a8840d803e074a07c99cb2f8f021ae0096fb85892",
+    "services/api/app/analysts/source_verification.py": "a5658f737b9e203ebe5e2f64e06b82717ff4b954f1f3b1bce2f082b17ba82fc8",
+    "services/api/app/audit/integrity.py": "5dcb77b6ffaf32baa8c82ca301243e223fe953a134e68325665be0d85e2b76c4",
+    "services/api/app/database/classification_registry_schema.py": "55eb19aeba3504c8797648ad1cbc3e1a307390ed8b70de29e6143b668ddc3fa3",
+    "services/api/app/database/migration_guard.py": "f1c7ca9d0a97a868e4b0481ae48280fdcc8ed2d1e16fde224f4860931bc9f899",
+    "services/api/app/database/models.py": "2fc57fe18bc7b7686d351d305861a379080049fa83cb4b86e178cf9ea04f3d08",
+    "services/api/app/database/roles.py": "e7fdc416bbe9b0c8997a8d04cd420688d0437aa54928a94ce10d35baa6a95647",
+    "services/api/app/database/source_registry_artifact.py": "d697183158a1a23f4913f0dad061bf8e2fcbf56e5d689435040c215415dfdd5e",
+    "services/api/app/database/source_registry_b4_admission.py": "1bd55eeb288c710df557a6008358ae1ddd1ebfe801affa81eaad8d812c85d3e2",
+    "services/api/app/database/source_registry_b4_authority.py": "8b25a121fbc5562c3f8def75cc5f02fd6d852e836480e1387b57e742ad48af2b",
+    "services/api/app/database/source_registry_b4_broker.py": "ddd79028eb956cad29ebd292db748b3ef8955c25fdae9962d2431319d1d5a77c",
+    "services/api/app/database/source_registry_b4_broker_server.py": "1caa04b787379e6b394a3a8eccb4030ee1f3ab45e3415f1567303104025d1ad5",
+    "services/api/app/database/source_registry_b4_host_control.py": "cd1c6544649f4ca711578af2a5406e92d5b86bd47f937bcdea8f42bdcd371e8e",
+    "services/api/app/database/source_registry_b4_runtime.py": "a4e36a3f105d7b422d517497a4a09c384903542a951884d094ecb9ec88ea51fc",
+    "services/api/app/database/source_registry_local_inputs.py": "5c8e7029e5819f522772c8fa45f233c02ad8d76e0b35844382a03df92cfff335",
+    "services/api/app/database/source_registry_migration_plan.py": "9ed2b5478b0e7257cc0f0e82d4fded4db01a67c9d5770042cd3f7b689601f14b",
+    "services/api/app/database/source_registry_observer.py": "9c087115f43206f31f00ebef38e504b5b0613041ccf4d90e587de5ec62c0c596",
+    "services/api/app/database/source_registry_observer_adapter.py": "35a1928052861a4d53b137485230b0132bb32d67a6698c95edbf88db84b997c8",
+    "services/api/app/database/source_registry_preflight.py": "51e31267a20e6675922dd0f2104cf311ef0a623f1b4ee3b981dd30f568826ab0",
+    "services/api/app/database/source_registry_preflight_launcher.py": "07216f9ba791c9a0ffd239ea0fc84e4d80a76a3f79d303538775bccf36bc7ed6",
+    "services/api/app/database/source_registry_schema.py": "ef5894c928d4239f56354363602b850757afbe7cabecacd50a13856a1060eb46",
+    "services/api/app/database/test_target.py": "cf59c1a9a3ab1759b8139ca108dec047549aed2fe50fa08760a6246201d53da9",
+    "services/api/app/evidence/hashing.py": "50bb74d3bee0ba8dc5831da3da1447aeef5445ed8d618cc437f59fb795e825bb",
+    "tests/conftest.py": "dccde9120712ac2525e5d16ec2143850324f141f7b2a8030ec6ca80fb757df7c",
+    "tests/database/test_guarded_migration.py": "f1cb18ea831876913a234493888993f4cbf5a6ac795780d1e6eca4156f4c39a8",
+    "tests/database/test_postgres_evidence_integration.py": "675f750b1e89de5c85e7b07833a8b793c0f36a74e1ec95825d9b67a97e3f39d5",
+    "tests/database/test_source_registry_b4_admission.py": "21bf5809c0a05c5999f7093e224df87db5e848bba76ec1827d01229965557d84",
+    "tests/database/test_source_registry_b4_authority.py": "7616538027855beb642958bd160378c8903883e2cf8c80f81e16062933e6341a",
+    "tests/database/test_source_registry_b4_broker.py": "4aba95797a8bdac277238f1b75fb825266fd1ccf6ed1a476ed3c0d1d19d90c66",
+    "tests/database/test_source_registry_b4_broker_server.py": "7bc370e0b9f13670828c152eda93c79cec1065d54010020c2cb5b889622f94d9",
+    "tests/database/test_source_registry_b4_host_control.py": "d98bc8c2c09d8fae564f970e1a310ffc7dd94352fafeb27c6ae51f8aaf2def51",
+    "tests/database/test_source_registry_b4_runtime.py": "05bfd00c5a8994862e2d1ca37a9f3645f65c3da462dc508b3eb5d0e2fdc30f8c",
+    "tests/database/test_source_registry_local_inputs.py": "e67b5a3deb94822d03d517db8b690355a154ea40dd32152f394d2ef537ce4a85",
+    "tests/database/test_source_registry_migration_plan.py": "bc91d4f2189b21f9f4f38e510f5dc652f0b7ebefdfad8bb6fdb9620fc3bc849d",
+    "tests/database/test_source_registry_observer.py": "668f9585c0847b6d1b815f0ead1c5763cb61c7d4eca922a2dcc6809dafb02682",
+    "tests/database/test_source_registry_observer_adapter.py": "93066c9b8ffda9e2663c5842dfe65193b4788f85d47bf26323bdb7669a627819",
+    "tests/database/test_source_registry_preflight.py": "d0990e362cf42856bce795928e82bf012ad093310efb5a81b6f12dede3f18df1",
+    "tests/database/test_source_registry_preflight_launcher.py": "428ea216f61f1b2d5534301f6bae5fdc5fbd0d64316277ec077763beaa171378",
+    "tests/offline-selection.json": "c29d4449622e50d78a8559079bb77da1236cb8fb8d3f03a78dc8a313a124e2cd"
+  },
+  "status": "UNAPPROVED_REVIEW_ONLY",
+  "units": {
+    "deploy/b4/ai-soc-b4-authority.service": {
+      "destination": "/etc/systemd/system/ai-soc-b4-authority.service",
+      "group": "root",
+      "mode": "0644",
+      "owner": "root",
+      "sha256": "774c15165a2fa2ae784c713f39a6ef1e3f80843876a2137791ca1c3293ceadc8"
+    },
+    "deploy/b4/ai-soc-b4-authority.socket": {
+      "destination": "/etc/systemd/system/ai-soc-b4-authority.socket",
+      "group": "root",
+      "mode": "0644",
+      "owner": "root",
+      "sha256": "1e1b19c66dff3e32386156d7ac5617a02892bb73f904f263983c823d72014fc8"
+    },
+    "deploy/b4/ai-soc-b4-broker.service": {
+      "destination": "/etc/systemd/system/ai-soc-b4-broker.service",
+      "group": "root",
+      "mode": "0644",
+      "owner": "root",
+      "sha256": "fb32b5b079b38338da4f0182bc347b4cf39b83bcbadcfb7de34366578000003f"
+    },
+    "deploy/b4/ai-soc-b4-control.socket": {
+      "destination": "/etc/systemd/system/ai-soc-b4-control.socket",
+      "group": "root",
+      "mode": "0644",
+      "owner": "root",
+      "sha256": "24ee1add105265292a61337ddc4d67291c55a8b4b1c5cf84f5f89b2838864da0"
+    },
+    "deploy/b4/ai-soc-b4-docker-inspect.socket": {
+      "destination": "/etc/systemd/system/ai-soc-b4-docker-inspect.socket",
+      "group": "root",
+      "mode": "0644",
+      "owner": "root",
+      "sha256": "1da4d0eb4133494029377d1b525c6f39c0b6e1c5f874c80db1d42404169ff748"
+    },
+    "deploy/b4/ai-soc-b4-host-control.service": {
+      "destination": "/etc/systemd/system/ai-soc-b4-host-control.service",
+      "group": "root",
+      "mode": "0644",
+      "owner": "root",
+      "sha256": "15cb2aff60c1af68836f1ac621f876af46e98e98342114e98eff432a839f3d3d"
+    },
+    "deploy/b4/ai-soc-b4-host-control.socket": {
+      "destination": "/etc/systemd/system/ai-soc-b4-host-control.socket",
+      "group": "root",
+      "mode": "0644",
+      "owner": "root",
+      "sha256": "9f9c8c7f30f0ac615cac719a8a696f0383c3d5b130c6985262f9d09aeb9a71a9"
+    },
+    "deploy/b4/ai-soc-b4-worker.socket": {
+      "destination": "/etc/systemd/system/ai-soc-b4-worker.socket",
+      "group": "root",
+      "mode": "0644",
+      "owner": "root",
+      "sha256": "b1ae5cb68ab086051441c91141bd1c728cad98e9103cc1a3a6dc648618418870"
+    },
+    "deploy/b4/ai-soc-b4-worker@.service": {
+      "destination": "/etc/systemd/system/ai-soc-b4-worker@.service",
+      "group": "root",
+      "mode": "0644",
+      "owner": "root",
+      "sha256": "624854ae5c6324f2768e3ec3b8d880f2a57d104604bc3596de4da9a9cec3bcf6"
+    },
+    "deploy/b4/b4workers.slice": {
+      "destination": "/etc/systemd/system/b4workers.slice",
+      "group": "root",
+      "mode": "0644",
+      "owner": "root",
+      "sha256": "3e23d5ab3b648226a771f32538e3aafb833b0d8e24143db41f2b790e8ccf507d"
+    }
+  }
+}

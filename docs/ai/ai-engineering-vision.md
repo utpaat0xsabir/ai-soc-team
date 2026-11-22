@@ -1,0 +1,9 @@
+# AI engineering vision
+
+Build local AI systems that help analysts investigate evidence, explain uncertainty and produce reviewable handoffs. Preserve a usable deterministic workflow when the model is missing, slow, or unreliable. The current L1 implementation is synthetic. The [architecture](../architecture/agent-orchestration.md) defines proposed tier responsibilities and the [research backlog](ai-research-backlog.md) defines measurable experiments.
+
+Contributors can build local embeddings and reranking, retrieval and attribution validators, prompt-injection defenses, structured evaluation datasets, case timelines, graph-assisted investigation, model adapters, and human feedback workflows. Start with a falsifiable hypothesis and a baseline. A synthetic detector or a bounded graph traversal often beats an LLM at exact matching and ordering. Use the model where language understanding or hypothesis synthesis improves reviewed outcomes.
+
+Never give models direct shell, database, infrastructure or internet credentials. Tool requests are typed proposals for a policy-checked gateway. Preserve tenant isolation before inference, including context assembly, caching, traces, batch scheduling and report retention. Local Ollama is the initial integration direction. Additional local engines need the same capability, deterministic validation and budget constraints. Qwen is a candidate model family. This review establishes neither current deployment nor comparative performance.
+
+Keep experimentation and release decisions separate. Report the dataset rights, model/dataset revisions, error classes, results, hardware and abstention behavior. Operational promotion requires independent testing with approved artifacts and workflows. [Evaluation](model-evaluation.md) · [Contributor guide](../../CONTRIBUTING.md)

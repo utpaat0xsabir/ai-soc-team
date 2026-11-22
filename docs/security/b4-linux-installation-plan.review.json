@@ -1,0 +1,42 @@
+[
+  {
+    "gid": 147,
+    "mode": "0750",
+    "operation": "mkdir",
+    "path": "/var/lib/ai-soc-b4/records",
+    "sha256": null,
+    "uid": 0
+  },
+  {
+    "gid": 147,
+    "mode": "0750",
+    "operation": "mkdir",
+    "path": "/var/lib/ai-soc-b4/pins",
+    "sha256": null,
+    "uid": 0
+  },
+  {
+    "gid": 147,
+    "mode": "0700",
+    "operation": "mkdir",
+    "path": "/var/lib/ai-soc-b4/evidence",
+    "sha256": null,
+    "uid": 136
+  },
+  {
+    "gid": 147,
+    "mode": "0440",
+    "operation": "install",
+    "path": "/opt/ai-soc-b4/source-ef2a34a42cfc0c65c44e095e66400e753a871a93bfcbff7c46523324e736869c.tar",
+    "sha256": "ceabf9b440df13c928847ec2b15e503f9f42275ed659f5c2fa1aff83e60e939b",
+    "uid": 0
+  },
+  {
+    "gid": 0,
+    "mode": "0644",
+    "operation": "install",
+    "path": "/etc/systemd/system/ai-soc-b4-worker@.service",
+    "sha256": "67308a9ed8a97ab552884c747860f1a263fa2a9057ff07296183c47fec3cc2f1",
+    "uid": 0
+  }
+]

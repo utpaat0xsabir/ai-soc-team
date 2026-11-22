@@ -367,3 +367,31 @@ def test_engine_from_secondary_fixture_is_covered():
         assert conftest._engines_for_request(request) == [engine]
     finally:
         engine.dispose()
+
+
+def test_multiple_engines_validate_their_own_targets(monkeypatch):
+    engines = [SimpleNamespace(url="unapproved"), SimpleNamespace(url="approved")]
+    callbacks = {}
+    checked = []
+    request = SimpleNamespace(addfinalizer=lambda callback: None)
+    monkeypatch.delenv("AI_SOC_ADVISORY_RUN_ID", raising=False)
+    monkeypatch.setattr(conftest, "_engines_for_request", lambda request: engines)
+    monkeypatch.setattr(conftest.event, "listen",
+                        lambda engine, name, handler: callbacks.update({(engine.url, name): handler}))
+
+    def validate(url):
+        checked.append(url)
+        if url == "unapproved":
+            raise pytest.UsageError("unapproved target")
+
+    monkeypatch.setattr(conftest, "_configured_test_url", validate)
+    monkeypatch.setattr(conftest, "_validate_connected_target", lambda connection, url: validate(url))
+    conftest._database_test_target_guard.__wrapped__(request)
+
+    with pytest.raises(pytest.UsageError, match="unapproved target"):
+        callbacks["unapproved", "do_connect"](None, None, [], {})
+    with pytest.raises(pytest.UsageError, match="unapproved target"):
+        callbacks["unapproved", "engine_connect"](object())
+    callbacks["approved", "do_connect"](None, None, [], {})
+    callbacks["approved", "engine_connect"](object())
+    assert checked == ["unapproved", "unapproved", "approved", "approved"]

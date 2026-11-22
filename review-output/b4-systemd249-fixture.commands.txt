@@ -1,0 +1,77 @@
+/usr/bin/sudo -- /usr/bin/systemd-run --system --no-ask-password --unit=b4-fixture-a649861e.service '--description=B4 credential-free fixture a649861e' --slice=b4fixturea649861e.slice --collect --property=Type=exec --property=DynamicUser=yes --property=User=b4fixturea649861e --property=Group=b4fixturea649861e --property=NoNewPrivileges=yes --property=PrivateTmp=yes --property=PrivateDevices=yes --property=ProtectSystem=strict --property=ProtectHome=yes --property=ProtectControlGroups=yes --property=ProtectKernelTunables=yes --property=ProtectKernelModules=yes --property=ProtectKernelLogs=yes --property=RestrictNamespaces=yes --property=RestrictSUIDSGID=yes --property=CapabilityBoundingSet= '--property=RestrictAddressFamilies=AF_UNIX AF_INET' '--property=SystemCallFilter=~socket socketpair connect' --property=SystemCallErrorNumber=EPERM --property=IPAddressDeny=any --property=KillMode=control-group --property=RuntimeMaxSec=30s --property=TimeoutStartSec=5s --property=TimeoutStopSec=5s --property=TimeoutStopFailureMode=kill --property=SendSIGKILL=yes --property=FinalKillSignal=SIGKILL --property=Restart=no --property=TasksMax=8 --property=MemoryMax=64M --property=LimitNOFILE=32 --property=LimitCORE=0 --property=StandardInput=null --property=StandardOutput=journal --property=StandardError=journal --property=UMask=0077 '--property=InaccessiblePaths=-/run/docker.sock -/var/run/docker.sock -/run/user -/run/ai-soc-b4 -/etc/ai-soc-b4 -/etc/ai-soc-b4-authority -/var/lib/ai-soc-b4 -/var/lib/ai-soc-b4-authority -/var/lib/ai-soc-b4-host-control -/var/ossec -/etc/wazuh-indexer -/etc/wazuh-dashboard -/var/lib/wazuh-indexer -/var/lib/wazuh-dashboard -/run/postgresql -/var/run/postgresql -/tmp/.s.PGSQL.5432' -- /usr/bin/python3 -I -B -c '
+import errno, json, os, signal, socket, stat, time
+from pathlib import Path
+expected = "0::/b4fixturea649861e.slice/b4-fixture-a649861e.service"
+def emit(role, **extra):
+    cg = Path("/proc/self/cgroup").read_text().strip()
+    if cg != expected:
+        raise RuntimeError("fixture scope mismatch")
+    pid = os.getpid()
+    stamp = Path("/proc/self/stat").read_text().rsplit(")", 1)[1].split()[19]
+    print(json.dumps(dict(role=role, pid=pid, start_ticks=stamp, cgroup=cg, **extra)), flush=True)
+def park():
+    while True:
+        signal.pause()
+signal.signal(signal.SIGTERM, signal.SIG_IGN)
+blocked = []
+for family in (socket.AF_INET, socket.AF_INET6, socket.AF_UNIX):
+    try:
+        with socket.socket(family, socket.SOCK_STREAM):
+            raise RuntimeError("fixture socket creation unexpectedly allowed")
+    except OSError as exc:
+        if exc.errno not in (errno.EAFNOSUPPORT, errno.EPERM, errno.EACCES):
+            raise
+        blocked.append(int(family))
+descriptors = []
+for name in os.listdir("/proc/self/fd"):
+    fd = int(name)
+    try:
+        mode = os.fstat(fd).st_mode
+    except OSError as exc:
+        if exc.errno != errno.EBADF:
+            raise
+        continue
+    if fd > 2 or (fd in (1, 2) and not stat.S_ISSOCK(mode)):
+        raise RuntimeError("unexpected inherited fixture descriptor")
+    descriptors.append(fd)
+if sorted(descriptors) != [0, 1, 2] or os.readlink("/proc/self/fd/0") != "/dev/null":
+    raise RuntimeError("unexpected fixture standard descriptors")
+if (os.geteuid() == 0 or os.geteuid() == 136 or 147 in [os.getegid(), *os.getgroups()]
+        or any(key == "CREDENTIALS_DIRECTORY" or
+               key.startswith(("PG", "DOCKER_", "WAZUH_", "LD_", "BASH_ENV"))
+               or key in {"DATABASE_URL", "TEST_DATABASE_URL", "AI_SOC_MIGRATION_DATABASE_URL"}
+               for key in os.environ)
+        or os.path.lexists("/run/credentials/b4-fixture-a649861e.service")):
+    raise RuntimeError("unexpected fixture credential or identity")
+paths = ('"'"'/run/docker.sock'"'"', '"'"'/var/run/docker.sock'"'"', '"'"'/run/user'"'"', '"'"'/run/ai-soc-b4'"'"', '"'"'/etc/ai-soc-b4'"'"', '"'"'/etc/ai-soc-b4-authority'"'"', '"'"'/var/lib/ai-soc-b4'"'"', '"'"'/var/lib/ai-soc-b4-authority'"'"', '"'"'/var/lib/ai-soc-b4-host-control'"'"', '"'"'/var/ossec'"'"', '"'"'/etc/wazuh-indexer'"'"', '"'"'/etc/wazuh-dashboard'"'"', '"'"'/var/lib/wazuh-indexer'"'"', '"'"'/var/lib/wazuh-dashboard'"'"', '"'"'/run/postgresql'"'"', '"'"'/var/run/postgresql'"'"', '"'"'/tmp/.s.PGSQL.5432'"'"')
+denied = {}
+for name in paths:
+    try:
+        mode = os.lstat(name).st_mode
+    except FileNotFoundError:
+        denied[name] = "absent in fixture namespace"
+    except PermissionError:
+        denied[name] = "inaccessible"
+    else:
+        if (any(os.access(name, right) for right in (os.R_OK, os.W_OK, os.X_OK))
+                or stat.S_ISSOCK(mode) or stat.S_ISLNK(mode)):
+            raise RuntimeError("fixture protected path exposed")
+        denied[name] = "inaccessible"
+emit("worker", blocked_families=blocked, protected_paths=denied, descriptors=sorted(descriptors))
+for role in ("broker-stub", "controller-stub"):
+    helper = os.fork()
+    if helper == 0:
+        emit(role)
+        os._exit(0)
+    _, status = os.waitpid(helper, 0)
+    if status != 0:
+        raise RuntimeError("fixture helper failed")
+if os.fork() == 0:
+    emit("child")
+    if os.fork() == 0:
+        emit("grandchild")
+        park()
+    park()
+park()
+'
+/usr/bin/sudo -- /usr/bin/journalctl --no-pager -o cat '_SYSTEMD_INVOCATION_ID=<verified-invocation>' _SYSTEMD_UNIT=b4-fixture-a649861e.service

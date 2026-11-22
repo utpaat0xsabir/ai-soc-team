@@ -10,10 +10,8 @@ import pytest
 from sqlalchemy import Engine, event, text
 from sqlalchemy.engine import make_url
 
-_DOCKER_FORMAT = (
-    '{{.Id}}|{{.Name}}|{{.Config.Image}}|{{.State.Status}}|'
-    '{{json .NetworkSettings.Ports}}|{{json .NetworkSettings.Networks}}'
-)
+from app.database.test_target import docker_postgres_identity
+
 _ADVISORY_CONTAINER_FORMAT = (
     '{{.Id}}|{{.Name}}|{{.Image}}|{{.Config.Image}}|{{.State.Status}}|'
     '{{json .Config.Labels}}|{{json .NetworkSettings.Ports}}|'
@@ -205,48 +203,9 @@ def _advisory_docker_identity():
 
 def _docker_postgres_identity():
     try:
-        result = subprocess.run(
-            [
-                'docker', 'inspect', '--type', 'container', '--format',
-                _DOCKER_FORMAT, 'ai-soc-postgres',
-            ],
-            check=True,
-            capture_output=True,
-            text=True,
-            timeout=3,
-        )
-        if len(result.stdout) > 8192:
-            raise ValueError('oversized Docker metadata')
-        fields = result.stdout.strip().split('|', 5)
-        if len(fields) != 6:
-            raise ValueError('malformed Docker metadata')
-        container_id, name, image, status, raw_ports, raw_networks = fields
-        ports = json.loads(raw_ports)
-        networks = json.loads(raw_networks)
-        if (
-            not re.fullmatch(r'[0-9a-f]{64}', container_id)
-            or name != '/ai-soc-postgres'
-            or image != 'postgres:16'
-            or status != 'running'
-            or ports != {'5432/tcp': [{'HostIp': '127.0.0.1', 'HostPort': '5432'}]}
-            or not isinstance(networks, dict)
-            or not networks
-        ):
-            raise ValueError('unexpected PostgreSQL container metadata')
-
-        addresses, gateways = set(), set()
-        for network in networks.values():
-            if not isinstance(network, dict):
-                raise ValueError('malformed Docker network metadata')
-            address = IPv4Address(network.get('IPAddress', ''))
-            gateway = IPv4Address(network.get('Gateway', ''))
-            if address.is_unspecified or address.is_loopback or gateway.is_unspecified:
-                raise ValueError('invalid Docker network address')
-            addresses.add(address)
-            gateways.add(gateway)
-        return addresses, gateways
-    except (OSError, subprocess.SubprocessError, ValueError, TypeError, json.JSONDecodeError):
-        raise pytest.UsageError('cannot verify the local ai-soc-postgres container') from None
+        return docker_postgres_identity()
+    except ValueError as exc:
+        raise pytest.UsageError(str(exc)) from None
 
 
 def _validate_connected_target(connection, engine_url):
@@ -264,9 +223,7 @@ def _validate_connected_target(connection, engine_url):
             expected_host = '127.0.0.1'
     else:
         configured = _configured_test_url(engine_url)
-        container_addresses, container_gateways = _docker_postgres_identity()
-        expected_server = container_addresses
-        expected_client = container_gateways
+        pairs = _docker_postgres_identity()
         expected_database = 'ai_soc_test'
         expected_host = '127.0.0.1'
     try:
@@ -278,8 +235,11 @@ def _validate_connected_target(connection, engine_url):
         ).one()
         client_address = IPv4Address(str(client_address))
         server_address = IPv4Address(str(server_address))
-        client_matches = client_address == expected_client if isinstance(expected_client, IPv4Address) else client_address in expected_client
-        server_matches = server_address == expected_server if isinstance(expected_server, IPv4Address) else server_address in expected_server
+        if not advisory_run:
+            client_matches = server_matches = (server_address, client_address) in pairs
+        else:
+            client_matches = client_address == expected_client if isinstance(expected_client, IPv4Address) else client_address in expected_client
+            server_matches = server_address == expected_server if isinstance(expected_server, IPv4Address) else server_address in expected_server
         if (
             database != expected_database
             or not isinstance(current_user, str)
@@ -300,8 +260,7 @@ def _validate_connected_target(connection, engine_url):
 
 @pytest.fixture(autouse=True)
 def _database_test_target_guard(request):
-    engines = _engines_for_request(request)
-    for engine in engines:
+    def install_guard(engine):
         def validate_before_connect(dialect, connection_record, cargs, cparams):
             if os.environ.get('AI_SOC_ADVISORY_RUN_ID'):
                 _configured_advisory_url(engine.url)
@@ -315,3 +274,6 @@ def _database_test_target_guard(request):
         event.listen(engine, 'engine_connect', validate_before_use)
         request.addfinalizer(lambda e=engine, cb=validate_before_connect: event.remove(e, 'do_connect', cb))
         request.addfinalizer(lambda e=engine, cb=validate_before_use: event.remove(e, 'engine_connect', cb))
+
+    for engine in _engines_for_request(request):
+        install_guard(engine)

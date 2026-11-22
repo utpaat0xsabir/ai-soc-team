@@ -1,0 +1,7 @@
+[Unit]
+Description=B4 isolated worker cgroups
+
+[Slice]
+TasksMax=16
+MemoryMax=512M
+CPUQuota=100%

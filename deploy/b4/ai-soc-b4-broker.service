@@ -1,0 +1,31 @@
+[Unit]
+Description=B4 protected preflight broker
+Requires=ai-soc-b4-control.socket ai-soc-b4-worker.socket ai-soc-b4-docker-inspect.socket ai-soc-b4-authority.socket b4workers.slice
+After=ai-soc-b4-control.socket ai-soc-b4-worker.socket ai-soc-b4-docker-inspect.socket ai-soc-b4-authority.socket b4workers.slice
+
+[Service]
+Type=exec
+User=root
+Group=root
+Sockets=ai-soc-b4-control.socket ai-soc-b4-worker.socket ai-soc-b4-docker-inspect.socket
+ExecStart=/opt/ai-soc-b4-broker/venv/bin/python -IB /opt/ai-soc-b4-broker/scripts/b4_preflight_bootstrap.py broker
+UMask=0077
+NoNewPrivileges=yes
+CapabilityBoundingSet=CAP_KILL
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+RestrictNamespaces=yes
+RestrictAddressFamilies=AF_UNIX
+IPAddressDeny=any
+ReadOnlyPaths=/sys/fs/cgroup
+ReadWritePaths=/sys/fs/cgroup/b4workers.slice /var/lib/ai-soc-b4/broker
+TasksMax=32
+MemoryMax=256M
+LimitNOFILE=128
+LimitCORE=0
+Restart=no

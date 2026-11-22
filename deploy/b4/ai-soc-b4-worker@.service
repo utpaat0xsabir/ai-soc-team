@@ -1,0 +1,52 @@
+[Unit]
+Description=Isolated B4 read-only worker %i
+ConditionFileIsExecutable=/opt/ai-soc-b4-worker/bootstrap/worker
+ConditionPathExists=/run/ai-soc-b4/docker-inspect.sock
+ConditionPathExists=/run/ai-soc-b4/worker.sock
+
+[Service]
+Type=exec
+Slice=b4workers.slice
+DynamicUser=yes
+User=ai-soc-b4-worker
+SupplementaryGroups=ai-soc-b4-worker-ipc
+# The independently approved bootstrap accepts only the validated decision ID.
+ExecStart=/opt/ai-soc-b4-worker/bootstrap/worker %i
+WorkingDirectory=/opt/ai-soc-b4-worker
+UMask=0077
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectProc=invisible
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+RestrictSUIDSGID=yes
+RestrictNamespaces=yes
+LockPersonality=yes
+CapabilityBoundingSet=
+RestrictAddressFamilies=AF_UNIX AF_INET
+IPAddressDeny=any
+IPAddressAllow=127.0.0.1/32
+# This socket must serve only the approved projected Docker inspection.
+BindReadOnlyPaths=/run/ai-soc-b4/docker-inspect.sock:/run/docker.sock
+InaccessiblePaths=/run/ai-soc-b4/control.sock /run/ai-soc-b4/authority.sock /run/ai-soc-b4/host-control.sock /var/lib/ai-soc-b4/replay /var/lib/ai-soc-b4/evidence /var/lib/ai-soc-b4/records /var/lib/ai-soc-b4/pins /etc/ai-soc-b4 /etc/ai-soc-b4-authority
+KillMode=control-group
+TimeoutStartSec=5s
+RuntimeMaxSec=30s
+Restart=no
+TimeoutStopFailureMode=kill
+SendSIGKILL=yes
+FinalKillSignal=SIGKILL
+TimeoutStopSec=5s
+TasksMax=16
+MemoryMax=512M
+CPUQuota=100%
+LimitNOFILE=128
+LimitCORE=0
+StandardOutput=null
+StandardError=null
